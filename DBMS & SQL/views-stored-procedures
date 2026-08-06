@@ -1,0 +1,257 @@
+# 10 — Views & Stored Procedures
+
+## Database Programmability
+
+---
+
+### Views
+
+A **view** is a virtual table based on a SELECT query. It doesn't store data—it's a saved query.
+
+```sql
+-- Create a view
+CREATE VIEW EmployeeSummary AS
+SELECT 
+    e.Name,
+    e.Department,
+    d.ManagerName
+FROM Employees e
+JOIN Departments d ON e.DeptID = d.ID
+WHERE e.Status = 'Active';
+
+-- Use the view like a table
+SELECT * FROM EmployeeSummary WHERE Department = 'CS';
+```
+
+**Benefits:**
+| Benefit | Description |
+|---------|-------------|
+| **Simplicity** | Hide complex queries behind simple names |
+| **Security** | Restrict access to specific columns/rows |
+| **Consistency** | Centralize business logic |
+| **Abstraction** | Decouple applications from table structure |
+
+#### Updatable Views
+
+Simple views can be updated:
+
+```sql
+-- Simple view (updatable)
+CREATE VIEW ActiveEmployees AS
+SELECT ID, Name, Email FROM Employees WHERE Status = 'Active';
+
+-- This works:
+UPDATE ActiveEmployees SET Email = 'new@email.com' WHERE ID = 1;
+
+-- Complex views with JOINs, GROUP BY are NOT updatable
+```
+
+#### Materialized Views
+
+**Store the result physically.** Faster reads, but needs refreshing.
+
+```sql
+-- Materialized view (PostgreSQL)
+CREATE MATERIALIZED VIEW SalesSummary AS
+SELECT 
+    ProductID,
+    SUM(Quantity) as TotalSold,
+    SUM(Amount) as TotalRevenue
+FROM Sales
+GROUP BY ProductID;
+
+-- Refresh when data changes
+REFRESH MATERIALIZED VIEW SalesSummary;
+```
+
+| View Type | Storage | Speed | Freshness |
+|-----------|---------|-------|-----------|
+| Regular View | Virtual | Depends on query | Always current |
+| Materialized View | Physical | Fast | May be stale |
+
+---
+
+### Stored Procedures
+
+A **stored procedure** is a prepared SQL code saved in the database.
+
+```sql
+-- Create a stored procedure
+DELIMITER //
+CREATE PROCEDURE GetEmployeesByDept(IN deptName VARCHAR(50))
+BEGIN
+    SELECT Name, Salary
+    FROM Employees
+    WHERE Department = deptName
+    ORDER BY Salary DESC;
+END //
+DELIMITER ;
+
+-- Call the procedure
+CALL GetEmployeesByDept('CS');
+```
+
+#### Parameters
+
+```sql
+-- IN: Input parameter (default)
+-- OUT: Output parameter
+-- INOUT: Both
+
+DELIMITER //
+CREATE PROCEDURE GetDeptStats(
+    IN deptName VARCHAR(50),
+    OUT empCount INT,
+    OUT avgSalary DECIMAL(10,2)
+)
+BEGIN
+    SELECT COUNT(*), AVG(Salary)
+    INTO empCount, avgSalary
+    FROM Employees
+    WHERE Department = deptName;
+END //
+DELIMITER ;
+
+-- Call with output
+CALL GetDeptStats('CS', @count, @avg);
+SELECT @count, @avg;
+```
+
+#### Control Flow
+
+```sql
+DELIMITER //
+CREATE PROCEDURE GiveRaise(
+    IN empID INT,
+    IN percent DECIMAL(5,2)
+)
+BEGIN
+    DECLARE currentSalary DECIMAL(10,2);
+    
+    SELECT Salary INTO currentSalary FROM Employees WHERE ID = empID;
+    
+    IF currentSalary < 50000 THEN
+        UPDATE Employees SET Salary = Salary * (1 + percent/100) WHERE ID = empID;
+    ELSEIF currentSalary < 100000 THEN
+        UPDATE Employees SET Salary = Salary * (1 + percent/200) WHERE ID = empID;
+    ELSE
+        -- No raise for high earners
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Salary too high for raise';
+    END IF;
+END //
+DELIMITER ;
+```
+
+#### Cursors
+
+Process rows one at a time.
+
+```sql
+DELIMITER //
+CREATE PROCEDURE ProcessAllEmployees()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE empName VARCHAR(100);
+    DECLARE emp CURSOR FOR SELECT Name FROM Employees;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    OPEN emp;
+    
+    read_loop: LOOP
+        FETCH emp INTO empName;
+        IF done THEN LEAVE read_loop; END IF;
+        -- Process each employee
+        SELECT empName;
+    END LOOP;
+    
+    CLOSE emp;
+END //
+DELIMITER ;
+```
+
+---
+
+### Functions
+
+User-defined functions that return a single value.
+
+```sql
+-- Scalar function
+CREATE FUNCTION GetBonus(salary DECIMAL(10,2))
+RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    RETURN salary * 0.1;
+END;
+
+-- Use in queries
+SELECT Name, Salary, GetBonus(Salary) AS Bonus FROM Employees;
+```
+
+**Difference from Stored Procedures:**
+
+| Aspect | Function | Stored Procedure |
+|--------|----------|------------------|
+| Returns | Single value | Result set or nothing |
+| Use in SQL | Yes (in SELECT) | No (CALL only) |
+| Side effects | Not allowed | Allowed |
+| Parameters | IN only | IN, OUT, INOUT |
+
+---
+
+### Triggers
+
+Automatically execute when certain events occur.
+
+```sql
+-- Audit trigger
+CREATE TABLE AuditLog (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TableName VARCHAR(50),
+    Action VARCHAR(10),
+    RecordID INT,
+    ChangedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER AfterEmployeeUpdate
+AFTER UPDATE ON Employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO AuditLog (TableName, Action, RecordID)
+    VALUES ('Employees', 'UPDATE', NEW.ID);
+END;
+```
+
+**Trigger types:**
+| Timing | Event | Description |
+|--------|-------|-------------|
+| BEFORE | INSERT | Validate before insert |
+| AFTER | INSERT | Log after insert |
+| BEFORE | UPDATE | Validate before update |
+| AFTER | UPDATE | Log after update |
+| BEFORE | DELETE | Prevent deletion |
+| AFTER | DELETE | Archive deleted data |
+
+---
+
+### Interview Questions
+
+**Q: What's the difference between a view and a table?**
+
+A: "A view is a virtual table—it's a saved SELECT query that doesn't store data. A table physically stores data. Views provide abstraction, security, and simplify complex queries. They're always up-to-date because they query the underlying tables each time."
+
+**Q: When would you use a stored procedure?**
+
+A: "For complex business logic that runs on the database server—reduces network traffic, improves performance (precompiled), centralizes logic, and provides security (users can't see table structure). Examples: batch processing, data validation, complex calculations."
+
+**Q: What's the difference between a stored procedure and a function?**
+
+A: "Functions return a single value and can be used in SELECT statements. Stored procedures return result sets or nothing and are called with CALL. Functions can't have side effects; procedures can. Use functions for calculations, procedures for business logic."
+
+**Q: What are triggers and when would you use them?**
+
+A: "Triggers automatically execute before or after INSERT, UPDATE, DELETE. Use for: auditing (log all changes), validation (enforce complex rules), cascading changes (update related tables). Be careful: triggers add overhead and can be hard to debug."
+
+---
+
+*Next: [11 — Query Optimization](11-Query-Optimization.md)*

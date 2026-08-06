@@ -348,7 +348,7 @@ public class ReportService {
 
 ### Interview Questions
 
-**Q: What are the SOLID principles?**
+**Q: What are the SOLID principles ?**
 
 A: "SOLID stands for Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion. They're design principles that make code more maintainable, testable, and extensible. SRP says one class, one job. OCP says extend without modifying. LSP says subtypes must be substitutable. ISP says prefer specific interfaces. DIP says depend on abstractions."
 
@@ -356,11 +356,11 @@ A: "SOLID stands for Single Responsibility, Open/Closed, Liskov Substitution, In
 
 A: "The classic example is Square extending Rectangle. Rectangle allows setting width and height independently, but Square must keep them equal. If client code sets width=5 and height=10 expecting area=50, it breaks for Square where area=100. The fix is to not use inheritance here—have separate classes implementing a common Shape interface."
 
-**Q: How does Dependency Inversion help with testing?**
+**Q: How does Dependency Inversion help with testing ?**
 
 A: "By depending on interfaces instead of concrete classes, I can inject mock implementations during testing. For example, OrderService depends on a Database interface, not MySQLDatabase. In tests, I inject an InMemoryDatabase that doesn't need a real database connection. This makes tests fast and isolated."
 
-**Q: When is it okay to violate SOLID?**
+**Q: When is it okay to violate SOLID ?**
 
 A: "In small, simple scripts or prototypes where maintainability isn't a concern. Or when the violation doesn't cause real problems—like a simple if/else that's unlikely to grow. The principles are guidelines, not laws. But for production code that will be maintained, following SOLID usually pays off."
 

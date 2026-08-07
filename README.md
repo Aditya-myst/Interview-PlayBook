@@ -1,13 +1,6 @@
 # 🚀 Software Engineering Interview Roadmap 2026
 
-<p align="center">
 
-<img src="https://img.shields.io/github/stars/yourusername/software-engineering-roadmap?style=for-the-badge" />
-<img src="https://img.shields.io/github/forks/yourusername/software-engineering-roadmap?style=for-the-badge" />
-<img src="https://img.shields.io/github/license/yourusername/software-engineering-roadmap?style=for-the-badge" />
-<img src="https://img.shields.io/github/last-commit/yourusername/software-engineering-roadmap?style=for-the-badge" />
-
-</p>
 
 <p align="center">
 

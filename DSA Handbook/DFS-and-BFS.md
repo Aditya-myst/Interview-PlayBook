@@ -1,423 +1,1246 @@
-# 09 — DFS and BFS
+# 09 — DFS and BFS: Complete Guide
 
-## The Patterns That Explore Every Node and Edge
-
----
-
-### What It Is
-
-DFS (Depth-First Search) explores as far as possible along each branch before backtracking. BFS (Breadth-First Search) explores all neighbors at the current depth before moving deeper.
-
-They're the fundamental traversal techniques for graphs and trees, and they form the backbone of many other patterns (backtracking, topological sort, shortest path, etc.).
-
-**The key insight:** Use DFS when you need to explore all possibilities or paths. Use BFS when you need the shortest path or level-by-level processing.
+## The Fundamental Graph Traversal Patterns That Unlock Complex Problems
 
 ---
 
-### When to Use It
+## Table of Contents
+1. [Core Concepts](#core-concepts)
+2. [When to Use Each Algorithm](#when-to-use-each-algorithm)
+3. [Mental Models and Visualization](#mental-models-and-visualization)
+4. [DFS Templates](#dfs-templates)
+5. [BFS Templates](#bfs-templates)
+6. [Grid-Based Problems](#grid-based-problems)
+7. [Common Mistakes and How to Avoid Them](#common-mistakes-and-how-to-avoid-them)
+8. [Dry Runs and Step-by-Step Walkthroughs](#dry-runs-and-step-by-step-walkthroughs)
+9. [Practice Problems](#practice-problems)
 
-**Trigger Words:**
+---
 
-| Trigger Word/Phrase | Use DFS | Use BFS |
-|---------------------|---------|---------|
-| "all paths" | ✓ | |
-| "find if path exists" | ✓ | ✓ |
-| "shortest path" (unweighted) | | ✓ |
-| "level by level" | | ✓ |
-| "connected components" | ✓ | |
-| "islands" | ✓ | ✓ |
-| "flood fill" | ✓ | ✓ |
-| "maze" | ✓ | ✓ |
-| "word ladder" | | ✓ |
-| "clone graph" | ✓ | ✓ |
-| "number of provinces" | ✓ | |
-| "rotting oranges" | | ✓ |
+## Core Concepts
 
-**The Decision:**
+### What Is DFS (Depth-First Search)?
+
+**Depth-First Search (DFS)** is a graph traversal algorithm that explores as far as possible along each branch before backtracking. It employs a **Last-In-First-Out (LIFO)** strategy through the use of a stack (or recursion).
+
+**Key Characteristics:**
+- Explores deeply into branches before exploring siblings
+- Uses either recursion (implicit stack) or an explicit stack data structure
+- Naturally suited for problems involving paths, connectivity, and exhaustive exploration
+- Memory efficient for deep trees (uses O(h) space where h is depth)
+- Can be inefficient for wide trees (in worst case, still O(n))
+
+**Real-world analogy:** Like exploring a maze by always turning left and following the wall until you hit a dead end, then backtracking to try other paths.
+
+### What Is BFS (Breadth-First Search)?
+
+**Breadth-First Search (BFS)** is a graph traversal algorithm that explores all neighbors at the current depth level before moving to nodes at the next depth level. It employs a **First-In-First-Out (FIFO)** strategy through the use of a queue.
+
+**Key Characteristics:**
+- Explores level-by-level, visiting all neighbors before going deeper
+- Uses a queue data structure for iteration
+- Essential for finding shortest paths in unweighted graphs
+- More memory-intensive than DFS in deep trees (uses O(w) space where w is width)
+- Guarantees the shortest path in unweighted graphs
+
+**Real-world analogy:** Like throwing a stone into water and watching the ripples expand outward in concentric circles, visiting all nearby points before reaching distant ones.
+
+---
+
+## When to Use Each Algorithm
+
+### Decision Matrix
+
+| Scenario | DFS | BFS | Both | Neither |
+|----------|-----|-----|------|---------|
+| All possible paths | ✓ | | | |
+| Path exists (any path) | ✓ | ✓ | | |
+| Shortest path (unweighted) | | ✓ | | |
+| Longest path (unweighted) | ✓ | | | |
+| Level-order traversal | | ✓ | | |
+| Connected components count | ✓ | | | |
+| Cycle detection | ✓ | ✓ | | |
+| Topological sorting | ✓ | | | |
+| Bipartite graph checking | ✓ | ✓ | | |
+| Island problems | ✓ | ✓ | | |
+| Flood fill | ✓ | ✓ | | |
+| Shortest path in weighted graph | | | | ✓ (Dijkstra) |
+| Multiple source shortest path | | ✓ | | |
+
+### Trigger Words and Phrases
 
 ```
-Graph/Tree problem?
-    ↓
-Need shortest path (unweighted)?
-    ↓
-Yes → BFS
+🔴 DFS Triggers:
+  - "all paths" → Find every possible route
+  - "connected components" → Count separate clusters
+  - "cycle detection" → Find loops in graph
+  - "topological sort" → Order with dependencies
+  - "backtracking" → Try all possibilities
+  - "deep exploration" → Go as far as possible
+  - "can reach" → Connectivity check
+  - "number of provinces" → Connected regions
 
-Need to explore all possibilities?
-    ↓
-Yes → DFS
-
-Need level-by-level processing?
-    ↓
-Yes → BFS
-
-Need connected components?
-    ↓
-Yes → DFS (or Union Find)
+🔵 BFS Triggers:
+  - "shortest path" → Minimum distance/steps
+  - "minimum steps" → Fewest moves needed
+  - "level by level" → Process in layers
+  - "closest node" → Nearest element
+  - "word ladder" → Transform one to another
+  - "rotting oranges" → Multi-source spread
+  - "distance from source" → How far away
+  - "alien dictionary" → Order from relationships
 ```
 
 ---
 
-### Mental Model
+## Mental Models and Visualization
 
-**DFS = Go deep, then backtrack (like exploring a maze by always turning left)**
+### DFS: The Depth Explorer
 
 ```
+Visual Representation:
         1
-       / \
-      2   5
-     / \
-    3   4
+       /|\
+      2 3 4
+     /|   
+    5 6   
 
-DFS: 1 → 2 → 3 → backtrack → 4 → backtrack → backtrack → 5
+Exploration Order: 1 → 2 → 5 → (backtrack) → 6 → (backtrack) → 3 → (backtrack) → 4
+
+Timeline:
+  VISIT(1) → EXPLORE_BRANCH
+    VISIT(2) → EXPLORE_BRANCH
+      VISIT(5) → LEAF, BACKTRACK
+      VISIT(6) → LEAF, BACKTRACK
+    BACKTRACK
+    VISIT(3) → LEAF, BACKTRACK
+    VISIT(4) → LEAF, BACKTRACK
+  DONE
 ```
 
-**BFS = Explore layer by layer (like ripples in a pond)**
+**Key Insight:** DFS follows one path to its end, then backs up and tries another. It's greedy and committal.
+
+### BFS: The Level Explorer
 
 ```
-        1
-       / \
-      2   5
-     / \
-    3   4
+Visual Representation:
+        1          (Level 0)
+       /|\
+      2 3 4        (Level 1)
+     /|   |
+    5 6   7        (Level 2)
 
-BFS: 1 → 2, 5 → 3, 4
+Exploration Order: 1 → [2,3,4] → [5,6,7]
+
+Timeline:
+  QUEUE: [1]
+  PROCESS 1: ADD CHILDREN → QUEUE: [2,3,4]
+  PROCESS 2: ADD CHILDREN → QUEUE: [3,4,5,6]
+  PROCESS 3: ADD CHILDREN → QUEUE: [4,5,6]
+  PROCESS 4: ADD CHILDREN → QUEUE: [5,6,7]
+  PROCESS 5,6,7: NO CHILDREN → QUEUE: []
+  DONE
 ```
+
+**Key Insight:** BFS processes all nodes at distance `d` before processing any node at distance `d+1`. It's systematic and comprehensive.
 
 ---
 
-### The 80% Template: DFS (Recursive)
+## DFS Templates
 
+### Template 1: Recursive DFS (Graph)
+
+The most intuitive and commonly used approach. Perfect for interview settings.
+
+#### Python
 ```python
-def dfs(node, visited):
+def dfs_recursive(node, visited, graph):
+    """
+    Recursive DFS traversal for graphs.
+    
+    Args:
+        node: Current node being explored
+        visited: Set to track visited nodes (prevent infinite loops)
+        graph: Adjacency list or adjacency matrix representation
+    
+    Returns:
+        None (modifies visited set in-place)
+    
+    Time Complexity: O(V + E) where V = vertices, E = edges
+    Space Complexity: O(V) for recursion stack in worst case
+    """
+    # Base case: prevent revisiting
     if node in visited:
         return
     
+    # Mark as visited IMMEDIATELY to prevent cycles
     visited.add(node)
     
-    # Process node here
+    # Process current node (print, accumulate, etc.)
+    print(f"Visiting node: {node}")
     
-    for neighbor in get_neighbors(node):
-        dfs(neighbor, visited)
+    # Recursively visit all unvisited neighbors
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            dfs_recursive(neighbor, visited, graph)
+
+
+# Example usage:
+if __name__ == "__main__":
+    # Graph represented as adjacency list
+    graph = {
+        1: [2, 3],
+        2: [1, 4, 5],
+        3: [1],
+        4: [2],
+        5: [2]
+    }
+    
+    visited = set()
+    dfs_recursive(1, visited, graph)
+    print(f"Visited nodes: {visited}")
 ```
 
-```c++
+#### Java
+```java
+import java.util.*;
+
+public class DFSRecursive {
+    /**
+     * Recursive DFS traversal for graphs.
+     * 
+     * @param node Current node being explored
+     * @param visited Set to track visited nodes
+     * @param graph Adjacency list representation
+     * 
+     * Time Complexity: O(V + E)
+     * Space Complexity: O(V) for recursion stack
+     */
+    public static void dfsRecursive(int node, 
+                                    Set<Integer> visited, 
+                                    List<List<Integer>> graph) {
+        // Prevent revisiting
+        if (visited.contains(node)) {
+            return;
+        }
+        
+        // Mark as visited immediately
+        visited.add(node);
+        
+        // Process current node
+        System.out.println("Visiting node: " + node);
+        
+        // Recursively visit all unvisited neighbors
+        for (int neighbor : graph.get(node)) {
+            if (!visited.contains(neighbor)) {
+                dfsRecursive(neighbor, visited, graph);
+            }
+        }
+    }
+    
+    // Example usage
+    public static void main(String[] args) {
+        // Build graph: 1 -> [2,3], 2 -> [1,4,5], etc.
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            graph.add(new ArrayList<>());
+        }
+        
+        // Add edges (undirected)
+        graph.get(1).addAll(Arrays.asList(2, 3));
+        graph.get(2).addAll(Arrays.asList(1, 4, 5));
+        graph.get(3).add(1);
+        graph.get(4).add(2);
+        graph.get(5).add(2);
+        
+        Set<Integer> visited = new HashSet<>();
+        dfsRecursive(1, visited, graph);
+        System.out.println("Visited nodes: " + visited);
+    }
+}
+```
+
+#### C++
+```cpp
+#include <iostream>
 #include <unordered_set>
 #include <vector>
 
-// Forward declaration – implement according to your graph structure
-std::vector<int> get_neighbors(int node);
-
-void dfs(int node, std::unordered_set<int>& visited) {
+/**
+ * Recursive DFS traversal for graphs.
+ * 
+ * Time Complexity: O(V + E)
+ * Space Complexity: O(V) for recursion stack
+ */
+void dfsRecursive(int node, 
+                  std::unordered_set<int>& visited, 
+                  const std::vector<std::vector<int>>& graph) {
+    // Prevent revisiting
     if (visited.find(node) != visited.end()) {
         return;
     }
     
+    // Mark as visited immediately
     visited.insert(node);
     
-    // Process node here (e.g., print, accumulate, etc.)
+    // Process current node
+    std::cout << "Visiting node: " << node << std::endl;
     
-    for (int neighbor : get_neighbors(node)) {
-        dfs(neighbor, visited);
+    // Recursively visit all unvisited neighbors
+    for (int neighbor : graph[node]) {
+        if (visited.find(neighbor) == visited.end()) {
+            dfsRecursive(neighbor, visited, graph);
+        }
     }
 }
-```
-```Java
-import java.util.HashSet;
-import java.util.List;
 
-// Assume this method is defined elsewhere
-List<Integer> getNeighbors(int node);
-
-void dfs(int node, HashSet<Integer> visited) {
-    if (visited.contains(node)) {
-        return;
+int main() {
+    // Build graph: 1 -> [2,3], 2 -> [1,4,5], etc.
+    std::vector<std::vector<int>> graph(6);
+    
+    // Add edges (undirected)
+    graph[1] = {2, 3};
+    graph[2] = {1, 4, 5};
+    graph[3] = {1};
+    graph[4] = {2};
+    graph[5] = {2};
+    
+    std::unordered_set<int> visited;
+    dfsRecursive(1, visited, graph);
+    
+    std::cout << "Visited nodes: ";
+    for (int node : visited) {
+        std::cout << node << " ";
     }
+    std::cout << std::endl;
     
-    visited.add(node);
-    
-    // Process node here (e.g., print, accumulate, etc.)
-    
-    for (int neighbor : getNeighbors(node)) {
-        dfs(neighbor, visited);
-    }
+    return 0;
 }
 ```
 
-### The 80% Template: DFS (Iterative)
+### Template 2: Iterative DFS (Explicit Stack)
 
+Use this when recursion depth might cause stack overflow or when you need more control.
+
+#### Python
 ```python
-def dfs(start):
-    stack = [start]
+def dfs_iterative(start_node, graph):
+    """
+    Iterative DFS using explicit stack.
+    
+    Advantages:
+        - No risk of stack overflow from recursion
+        - More control over iteration
+        - Useful for very deep graphs
+    
+    Args:
+        start_node: Node to start traversal
+        graph: Adjacency list representation
+    
+    Returns:
+        Set of visited nodes
+    
+    Time Complexity: O(V + E)
+    Space Complexity: O(V) for stack storage
+    """
+    stack = [start_node]
     visited = set()
     
     while stack:
-        node = stack.pop()
+        node = stack.pop()  # LIFO - this is what makes it a stack
+        
+        # Skip if already visited (handles duplicates in stack)
         if node in visited:
             continue
         
+        # Mark as visited
         visited.add(node)
         
-        # Process node here
+        # Process node
+        print(f"Visiting node: {node}")
         
-        for neighbor in get_neighbors(node):
+        # Add unvisited neighbors to stack (in reverse for left-to-right order)
+        for neighbor in reversed(graph.get(node, [])):
             if neighbor not in visited:
                 stack.append(neighbor)
+    
+    return visited
+
+
+# Example usage
+if __name__ == "__main__":
+    graph = {
+        1: [2, 3],
+        2: [1, 4, 5],
+        3: [1],
+        4: [2],
+        5: [2]
+    }
+    
+    visited_nodes = dfs_iterative(1, graph)
+    print(f"All visited nodes: {visited_nodes}")
 ```
 
-```c++
+#### Java
+```java
+import java.util.*;
+
+public class DFSIterative {
+    /**
+     * Iterative DFS using explicit stack.
+     * 
+     * @param startNode Node to start traversal
+     * @param graph Adjacency list representation
+     * @return Set of visited nodes
+     * 
+     * Time Complexity: O(V + E)
+     * Space Complexity: O(V) for stack storage
+     */
+    public static Set<Integer> dfsIterative(int startNode, 
+                                            List<List<Integer>> graph) {
+        Stack<Integer> stack = new Stack<>();
+        Set<Integer> visited = new HashSet<>();
+        
+        stack.push(startNode);
+        
+        while (!stack.isEmpty()) {
+            int node = stack.pop();
+            
+            // Skip if already visited
+            if (visited.contains(node)) {
+                continue;
+            }
+            
+            // Mark as visited
+            visited.add(node);
+            
+            // Process node
+            System.out.println("Visiting node: " + node);
+            
+            // Add unvisited neighbors to stack
+            List<Integer> neighbors = graph.get(node);
+            // Reverse iteration to maintain left-to-right order
+            for (int i = neighbors.size() - 1; i >= 0; i--) {
+                int neighbor = neighbors.get(i);
+                if (!visited.contains(neighbor)) {
+                    stack.push(neighbor);
+                }
+            }
+        }
+        
+        return visited;
+    }
+    
+    public static void main(String[] args) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            graph.add(new ArrayList<>());
+        }
+        
+        graph.get(1).addAll(Arrays.asList(2, 3));
+        graph.get(2).addAll(Arrays.asList(1, 4, 5));
+        graph.get(3).add(1);
+        graph.get(4).add(2);
+        graph.get(5).add(2);
+        
+        Set<Integer> visitedNodes = dfsIterative(1, graph);
+        System.out.println("All visited nodes: " + visitedNodes);
+    }
+}
+```
+
+#### C++
+```cpp
+#include <iostream>
 #include <stack>
 #include <unordered_set>
 #include <vector>
 
-// Assume get_neighbors is defined somewhere
-std::vector<int> get_neighbors(int node);
-
-void dfs(int start) {
+/**
+ * Iterative DFS using explicit stack.
+ * 
+ * Time Complexity: O(V + E)
+ * Space Complexity: O(V) for stack storage
+ */
+std::unordered_set<int> dfsIterative(int startNode, 
+                                      const std::vector<std::vector<int>>& graph) {
     std::stack<int> stack;
-    stack.push(start);
     std::unordered_set<int> visited;
+    
+    stack.push(startNode);
     
     while (!stack.empty()) {
         int node = stack.top();
         stack.pop();
         
+        // Skip if already visited
         if (visited.find(node) != visited.end()) {
             continue;
         }
         
+        // Mark as visited
         visited.insert(node);
         
-        // Process node here
+        // Process node
+        std::cout << "Visiting node: " << node << std::endl;
         
-        for (int neighbor : get_neighbors(node)) {
+        // Add unvisited neighbors to stack
+        const auto& neighbors = graph[node];
+        // Push in reverse order to maintain left-to-right exploration order
+        for (int i = neighbors.size() - 1; i >= 0; --i) {
+            int neighbor = neighbors[i];
             if (visited.find(neighbor) == visited.end()) {
                 stack.push(neighbor);
             }
         }
     }
+    
+    return visited;
+}
+
+int main() {
+    std::vector<std::vector<int>> graph(6);
+    
+    graph[1] = {2, 3};
+    graph[2] = {1, 4, 5};
+    graph[3] = {1};
+    graph[4] = {2};
+    graph[5] = {2};
+    
+    auto visitedNodes = dfsIterative(1, graph);
+    
+    std::cout << "All visited nodes: ";
+    for (int node : visitedNodes) {
+        std::cout << node << " ";
+    }
+    std::cout << std::endl;
+    
+    return 0;
 }
 ```
 
-``` Java
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.List;
+---
 
-// Assume getNeighbors is defined somewhere
-List<Integer> getNeighbors(int node);
+## BFS Templates
 
-void dfs(int start) {
-    Deque<Integer> stack = new ArrayDeque<>();
-    stack.push(start);
-    HashSet<Integer> visited = new HashSet<>();
+### Template 1: Standard BFS (Graph)
+
+Essential for shortest path problems in unweighted graphs.
+
+#### Python
+```python
+from collections import deque
+
+def bfs(start_node, graph):
+    """
+    Standard BFS traversal for graphs.
     
-    while (!stack.isEmpty()) {
-        int node = stack.pop();
+    Characteristics:
+        - Explores level by level
+        - FIFO queue ensures shortest path in unweighted graphs
+        - Systematic and comprehensive
+    
+    Args:
+        start_node: Node to start traversal
+        graph: Adjacency list representation
+    
+    Returns:
+        Dictionary with nodes and their distances from start
+    
+    Time Complexity: O(V + E)
+    Space Complexity: O(V) for queue
+    """
+    queue = deque([start_node])
+    visited = {start_node}
+    distances = {start_node: 0}
+    
+    while queue:
+        node = queue.popleft()  # FIFO - this is what makes it a queue
+        current_distance = distances[node]
         
-        if (visited.contains(node)) {
-            continue;
-        }
+        # Process node
+        print(f"Visiting node: {node} at distance {current_distance}")
         
-        visited.add(node);
+        # Explore all unvisited neighbors
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                distances[neighbor] = current_distance + 1
+                queue.append(neighbor)
+    
+    return distances
+
+
+# Example usage
+if __name__ == "__main__":
+    graph = {
+        1: [2, 3],
+        2: [1, 4, 5],
+        3: [1],
+        4: [2],
+        5: [2]
+    }
+    
+    distances = bfs(1, graph)
+    print(f"Distances from node 1: {distances}")
+```
+
+#### Java
+```java
+import java.util.*;
+
+public class BFSGraph {
+    /**
+     * Standard BFS traversal for graphs.
+     * 
+     * @param startNode Node to start traversal
+     * @param graph Adjacency list representation
+     * @return Map of nodes and their distances from start
+     * 
+     * Time Complexity: O(V + E)
+     * Space Complexity: O(V) for queue
+     */
+    public static Map<Integer, Integer> bfs(int startNode, 
+                                            List<List<Integer>> graph) {
+        Queue<Integer> queue = new LinkedList<>();
+        Set<Integer> visited = new HashSet<>();
+        Map<Integer, Integer> distances = new HashMap<>();
         
-        // Process node here
+        queue.offer(startNode);
+        visited.add(startNode);
+        distances.put(startNode, 0);
         
-        for (int neighbor : getNeighbors(node)) {
-            if (!visited.contains(neighbor)) {
-                stack.push(neighbor);
+        while (!queue.isEmpty()) {
+            int node = queue.poll();
+            int currentDistance = distances.get(node);
+            
+            // Process node
+            System.out.println("Visiting node: " + node + " at distance " + currentDistance);
+            
+            // Explore all unvisited neighbors
+            for (int neighbor : graph.get(node)) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    distances.put(neighbor, currentDistance + 1);
+                    queue.offer(neighbor);
+                }
             }
         }
+        
+        return distances;
+    }
+    
+    public static void main(String[] args) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            graph.add(new ArrayList<>());
+        }
+        
+        graph.get(1).addAll(Arrays.asList(2, 3));
+        graph.get(2).addAll(Arrays.asList(1, 4, 5));
+        graph.get(3).add(1);
+        graph.get(4).add(2);
+        graph.get(5).add(2);
+        
+        Map<Integer, Integer> distances = bfs(1, graph);
+        System.out.println("Distances from node 1: " + distances);
     }
 }
 ```
 
-### The 80% Template: BFS
+#### C++
+```cpp
+#include <iostream>
+#include <queue>
+#include <unordered_set>
+#include <unordered_map>
+#include <vector>
 
-```python
-from collections import deque
-
-def bfs(start):
-    queue = deque([start])
-    visited = {start}
+/**
+ * Standard BFS traversal for graphs.
+ * 
+ * Time Complexity: O(V + E)
+ * Space Complexity: O(V) for queue
+ */
+std::unordered_map<int, int> bfs(int startNode, 
+                                  const std::vector<std::vector<int>>& graph) {
+    std::queue<int> q;
+    std::unordered_set<int> visited;
+    std::unordered_map<int, int> distances;
     
-    while queue:
-        node = queue.popleft()
+    q.push(startNode);
+    visited.insert(startNode);
+    distances[startNode] = 0;
+    
+    while (!q.empty()) {
+        int node = q.front();
+        q.pop();
         
-        # Process node here
+        int currentDistance = distances[node];
         
-        for neighbor in get_neighbors(node):
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append(neighbor)
+        // Process node
+        std::cout << "Visiting node: " << node << " at distance " << currentDistance << std::endl;
+        
+        // Explore all unvisited neighbors
+        for (int neighbor : graph[node]) {
+            if (visited.find(neighbor) == visited.end()) {
+                visited.insert(neighbor);
+                distances[neighbor] = currentDistance + 1;
+                q.push(neighbor);
+            }
+        }
+    }
+    
+    return distances;
+}
+
+int main() {
+    std::vector<std::vector<int>> graph(6);
+    
+    graph[1] = {2, 3};
+    graph[2] = {1, 4, 5};
+    graph[3] = {1};
+    graph[4] = {2};
+    graph[5] = {2};
+    
+    auto distances = bfs(1, graph);
+    
+    std::cout << "Distances from node 1: ";
+    for (const auto& [node, dist] : distances) {
+        std::cout << "(" << node << ":" << dist << ") ";
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}
 ```
 
 ---
+
+## Grid-Based Problems
 
 ### DFS on Grids
 
-Many problems present a 2D grid as a graph. Each cell is a node, and adjacent cells are neighbors.
+When dealing with 2D grids, each cell is a node, and adjacent cells are neighbors (typically 4-directional).
 
+#### Python
 ```python
-def dfs_grid(grid, row, col, visited):
-    # Boundary check
-    if (row < 0 or row >= len(grid) or 
-        col < 0 or col >= len(grid[0]) or
-        (row, col) in visited or
-        grid[row][col] == 0):  # or whatever condition
+def dfs_grid(grid, start_row, start_col, visited=None):
+    """
+    DFS traversal on 2D grid.
+    
+    Handles:
+        - Boundary checking
+        - Cell state validation
+        - 4-directional movement
+    
+    Args:
+        grid: 2D list where 0 = obstacle, 1 = valid
+        start_row, start_col: Starting cell coordinates
+        visited: Set to track visited cells (optional, creates if None)
+    
+    Returns:
+        None (modifies visited set)
+    
+    Time Complexity: O(rows × cols)
+    Space Complexity: O(rows × cols) for visited set
+    """
+    if visited is None:
+        visited = set()
+    
+    # Boundary checks (crucial for grids!)
+    if (start_row < 0 or start_row >= len(grid) or
+        start_col < 0 or start_col >= len(grid[0]) or
+        (start_row, start_col) in visited or
+        grid[start_row][start_col] == 0):  # 0 = obstacle
         return
     
-    visited.add((row, col))
+    # Mark as visited
+    visited.add((start_row, start_col))
     
-    # Process cell
+    # Process current cell
+    print(f"Visiting cell: ({start_row}, {start_col})")
     
-    # Visit 4 neighbors (up, down, left, right)
-    for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
-        dfs_grid(grid, row + dr, col + dc, visited)
+    # 4-directional movement: up, down, left, right
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+    for dr, dc in directions:
+        new_row, new_col = start_row + dr, start_col + dc
+        dfs_grid(grid, new_row, new_col, visited)
+    
+    return visited
+
+
+# Example usage
+if __name__ == "__main__":
+    grid = [
+        [1, 1, 0, 1],
+        [1, 0, 1, 1],
+        [1, 1, 1, 0],
+        [0, 1, 1, 1]
+    ]
+    
+    visited = dfs_grid(grid, 0, 0)
+    print(f"Visited cells: {visited}")
 ```
 
----
+#### Java
+```java
+import java.util.HashSet;
+import java.util.Set;
+
+public class DFSGrid {
+    /**
+     * DFS traversal on 2D grid with 4-directional movement.
+     * 
+     * @param grid 2D array where 0 = obstacle, 1 = valid
+     * @param row Current row coordinate
+     * @param col Current column coordinate
+     * @param visited Set to track visited cells
+     * 
+     * Time Complexity: O(rows × cols)
+     * Space Complexity: O(rows × cols)
+     */
+    public static void dfsGrid(int[][] grid, 
+                               int row, 
+                               int col, 
+                               Set<String> visited) {
+        // Boundary checks
+        if (row < 0 || row >= grid.length || 
+            col < 0 || col >= grid[0].length ||
+            visited.contains(row + "," + col) ||
+            grid[row][col] == 0) {  // 0 = obstacle
+            return;
+        }
+        
+        // Mark as visited
+        visited.add(row + "," + col);
+        
+        // Process current cell
+        System.out.println("Visiting cell: (" + row + ", " + col + ")");
+        
+        // 4-directional movement
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        
+        for (int[] dir : directions) {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            dfsGrid(grid, newRow, newCol, visited);
+        }
+    }
+    
+    public static void main(String[] args) {
+        int[][] grid = {
+            {1, 1, 0, 1},
+            {1, 0, 1, 1},
+            {1, 1, 1, 0},
+            {0, 1, 1, 1}
+        };
+        
+        Set<String> visited = new HashSet<>();
+        dfsGrid(grid, 0, 0, visited);
+        System.out.println("Visited cells: " + visited.size());
+    }
+}
+```
+
+#### C++
+```cpp
+#include <iostream>
+#include <set>
+#include <vector>
+#include <utility>
+
+/**
+ * DFS traversal on 2D grid.
+ * 
+ * Time Complexity: O(rows × cols)
+ * Space Complexity: O(rows × cols)
+ */
+void dfsGrid(const std::vector<std::vector<int>>& grid,
+             int row,
+             int col,
+             std::set<std::pair<int, int>>& visited) {
+    int rows = grid.size();
+    int cols = grid[0].size();
+    
+    // Boundary checks
+    if (row < 0 || row >= rows ||
+        col < 0 || col >= cols ||
+        visited.find({row, col}) != visited.end() ||
+        grid[row][col] == 0) {  // 0 = obstacle
+        return;
+    }
+    
+    // Mark as visited
+    visited.insert({row, col});
+    
+    // Process current cell
+    std::cout << "Visiting cell: (" << row << ", " << col << ")" << std::endl;
+    
+    // 4-directional movement
+    int directions[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    
+    for (const auto& dir : directions) {
+        int newRow = row + dir[0];
+        int newCol = col + dir[1];
+        dfsGrid(grid, newRow, newCol, visited);
+    }
+}
+
+int main() {
+    std::vector<std::vector<int>> grid = {
+        {1, 1, 0, 1},
+        {1, 0, 1, 1},
+        {1, 1, 1, 0},
+        {0, 1, 1, 1}
+    };
+    
+    std::set<std::pair<int, int>> visited;
+    dfsGrid(grid, 0, 0, visited);
+    
+    std::cout << "Visited cells: " << visited.size() << std::endl;
+    
+    return 0;
+}
+```
 
 ### BFS on Grids
 
+Essential for finding shortest paths in grids and multi-source problems.
+
+#### Python
 ```python
 from collections import deque
 
 def bfs_grid(grid, start_row, start_col):
-    queue = deque([(start_row, start_col)])
+    """
+    BFS traversal on 2D grid finding distances from source.
+    
+    Returns:
+        Dictionary mapping (row, col) to distance from start
+    
+    Time Complexity: O(rows × cols)
+    Space Complexity: O(rows × cols)
+    """
+    rows, cols = len(grid), len(grid[0])
+    queue = deque([(start_row, start_col, 0)])  # (row, col, distance)
     visited = {(start_row, start_col)}
-    distance = {(start_row, start_col): 0}
+    distances = {(start_row, start_col): 0}
+    
+    # 4-directional movement
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     
     while queue:
-        row, col = queue.popleft()
+        row, col, dist = queue.popleft()
         
-        for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
-            nr, nc = row + dr, col + dc
-            if (0 <= nr < len(grid) and 
-                0 <= nc < len(grid[0]) and
-                (nr, nc) not in visited and
-                grid[nr][nc] != 0):
-                visited.add((nr, nc))
-                distance[(nr, nc)] = distance[(row, col)] + 1
-                queue.append((nr, nc))
+        # Process current cell
+        print(f"Processing cell: ({row}, {col}) at distance {dist}")
+        
+        # Explore all 4 neighbors
+        for dr, dc in directions:
+            new_row, new_col = row + dr, col + dc
+            
+            # Validate bounds and state
+            if (0 <= new_row < rows and
+                0 <= new_col < cols and
+                (new_row, new_col) not in visited and
+                grid[new_row][new_col] != 0):  # 0 = obstacle
+                
+                visited.add((new_row, new_col))
+                new_distance = dist + 1
+                distances[(new_row, new_col)] = new_distance
+                queue.append((new_row, new_col, new_distance))
     
-    return distance
+    return distances
+
+
+# Example usage
+if __name__ == "__main__":
+    grid = [
+        [1, 1, 0, 1],
+        [1, 0, 1, 1],
+        [1, 1, 1, 0],
+        [0, 1, 1, 1]
+    ]
+    
+    distances = bfs_grid(grid, 0, 0)
+    for (row, col), dist in sorted(distances.items()):
+        print(f"Cell ({row}, {col}): distance = {dist}")
 ```
 
-```C++
-#include <queue>
-#include <vector>
-#include <utility>   // for std::pair
-
-std::vector<std::vector<int>> bfs_grid(
-    const std::vector<std::vector<int>>& grid,
-    int start_row,
-    int start_col
-) {
-    int rows = grid.size();
-    int cols = (rows > 0) ? grid[0].size() : 0;
-
-    // Distances: -1 means unvisited / unreachable
-    std::vector<std::vector<int>> distance(rows, std::vector<int>(cols, -1));
-    std::vector<std::vector<bool>> visited(rows, std::vector<bool>(cols, false));
-
-    // If start is out of bounds or blocked, return empty distances (or handle as needed)
-    if (start_row < 0 || start_row >= rows || start_col < 0 || start_col >= cols ||
-        grid[start_row][start_col] == 0) {
-        return distance;   // or you could throw an exception
-    }
-
-    std::queue<std::pair<int, int>> q;
-    q.push({start_row, start_col});
-    visited[start_row][start_col] = true;
-    distance[start_row][start_col] = 0;
-
-    // Four directional moves: up, down, left, right
-    const int dr[] = {-1, 1, 0, 0};
-    const int dc[] = {0, 0, -1, 1};
-
-    while (!q.empty()) {
-        auto [r, c] = q.front();
-        q.pop();
-
-        for (int i = 0; i < 4; ++i) {
-            int nr = r + dr[i];
-            int nc = c + dc[i];
-
-            // Check bounds, visit status, and blocked cell (0)
-            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols &&
-                !visited[nr][nc] && grid[nr][nc] != 0) {
-                visited[nr][nc] = true;
-                distance[nr][nc] = distance[r][c] + 1;
-                q.push({nr, nc});
-            }
-        }
-    }
-
-    return distance;
-}
-```
-
-```Java
+#### Java
+```java
 import java.util.*;
 
 public class BFSGrid {
-    public static int[][] bfsGrid(int[][] grid, int startRow, int startCol) {
+    static class Cell {
+        int row, col, distance;
+        Cell(int r, int c, int d) { row = r; col = c; distance = d; }
+    }
+    
+    /**
+     * BFS on 2D grid to find distances from source.
+     * 
+     * Time Complexity: O(rows × cols)
+     * Space Complexity: O(rows × cols)
+     */
+    public static Map<String, Integer> bfsGrid(int[][] grid, 
+                                               int startRow, 
+                                               int startCol) {
         int rows = grid.length;
-        int cols = (rows > 0) ? grid[0].length : 0;
-
-        // Distances: -1 means unvisited / unreachable
-        int[][] distance = new int[rows][cols];
-        boolean[][] visited = new boolean[rows][cols];
-
-        // Initialize distance array with -1
-        for (int[] row : distance) {
-            Arrays.fill(row, -1);
-        }
-
-        // If start is out of bounds or blocked, return (or handle as needed)
-        if (startRow < 0 || startRow >= rows || startCol < 0 || startCol >= cols ||
-            grid[startRow][startCol] == 0) {
-            return distance;
-        }
-
-        Queue<int[]> queue = new ArrayDeque<>();
-        queue.offer(new int[]{startRow, startCol});
-        visited[startRow][startCol] = true;
-        distance[startRow][startCol] = 0;
-
-        // Four directional moves: up, down, left, right
-        int[] dr = {-1, 1, 0, 0};
-        int[] dc = {0, 0, -1, 1};
-
+        int cols = grid[0].length;
+        
+        Queue<Cell> queue = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+        Map<String, Integer> distances = new HashMap<>();
+        
+        String startKey = startRow + "," + startCol;
+        queue.offer(new Cell(startRow, startCol, 0));
+        visited.add(startKey);
+        distances.put(startKey, 0);
+        
+        // 4-directional movement
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        
         while (!queue.isEmpty()) {
-            int[] cell = queue.poll();
-            int r = cell[0];
-            int c = cell[1];
-
-            for (int i = 0; i < 4; i++) {
-                int nr = r + dr[i];
-                int nc = c + dc[i];
-
-                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols &&
-                    !visited[nr][nc] && grid[nr][nc] != 0) {
-                    visited[nr][nc] = true;
-                    distance[nr][nc] = distance[r][c] + 1;
-                    queue.offer(new int[]{nr, nc});
+            Cell current = queue.poll();
+            
+            System.out.println("Processing cell: (" + current.row + ", " + 
+                             current.col + ") at distance " + current.distance);
+            
+            // Explore 4 neighbors
+            for (int[] dir : directions) {
+                int newRow = current.row + dir[0];
+                int newCol = current.col + dir[1];
+                String key = newRow + "," + newCol;
+                
+                // Validate
+                if (newRow >= 0 && newRow < rows &&
+                    newCol >= 0 && newCol < cols &&
+                    !visited.contains(key) &&
+                    grid[newRow][newCol] != 0) {
+                    
+                    visited.add(key);
+                    int newDist = current.distance + 1;
+                    distances.put(key, newDist);
+                    queue.offer(new Cell(newRow, newCol, newDist));
                 }
             }
         }
-
-        return distance;
+        
+        return distances;
     }
+    
+    public static void main(String[] args) {
+        int[][] grid = {
+            {1, 1, 0, 1},
+            {1, 0, 1, 1},
+            {1, 1, 1, 0},
+            {0, 1, 1, 1}
+        };
+        
+        Map<String, Integer> distances = bfsGrid(grid, 0, 0);
+        distances.forEach((key, dist) -> 
+            System.out.println("Cell " + key + ": distance = " + dist)
+        );
+    }
+}
+```
+
+#### C++
+```cpp
+#include <iostream>
+#include <queue>
+#include <set>
+#include <map>
+#include <vector>
+#include <utility>
+
+/**
+ * BFS on 2D grid to find distances.
+ * 
+ * Time Complexity: O(rows × cols)
+ * Space Complexity: O(rows × cols)
+ */
+std::map<std::pair<int, int>, int> bfsGrid(const std::vector<std::vector<int>>& grid,
+                                            int startRow,
+                                            int startCol) {
+    int rows = grid.size();
+    int cols = grid[0].size();
+    
+    std::queue<std::tuple<int, int, int>> q;  // row, col, distance
+    std::set<std::pair<int, int>> visited;
+    std::map<std::pair<int, int>, int> distances;
+    
+    q.push({startRow, startCol, 0});
+    visited.insert({startRow, startCol});
+    distances[{startRow, startCol}] = 0;
+    
+    // 4-directional movement
+    int directions[][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    
+    while (!q.empty()) {
+        auto [row, col, dist] = q.front();
+        q.pop();
+        
+        std::cout << "Processing cell: (" << row << ", " << col 
+                  << ") at distance " << dist << std::endl;
+        
+        // Explore 4 neighbors
+        for (const auto& dir : directions) {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            
+            // Validate
+            if (newRow >= 0 && newRow < rows &&
+                newCol >= 0 && newCol < cols &&
+                visited.find({newRow, newCol}) == visited.end() &&
+                grid[newRow][newCol] != 0) {
+                
+                visited.insert({newRow, newCol});
+                int newDist = dist + 1;
+                distances[{newRow, newCol}] = newDist;
+                q.push({newRow, newCol, newDist});
+            }
+        }
+    }
+    
+    return distances;
+}
+
+int main() {
+    std::vector<std::vector<int>> grid = {
+        {1, 1, 0, 1},
+        {1, 0, 1, 1},
+        {1, 1, 1, 0},
+        {0, 1, 1, 1}
+    };
+    
+    auto distances = bfsGrid(grid, 0, 0);
+    
+    for (const auto& [coord, dist] : distances) {
+        std::cout << "Cell (" << coord.first << ", " << coord.second 
+                  << "): distance = " << dist << std::endl;
+    }
+    
+    return 0;
 }
 ```
 
 ---
 
-### Dry Run: Number of Islands
+## Common Mistakes and How to Avoid Them
 
-**Problem:** Given a 2D grid of '1's (land) and '0's (water), count the number of islands.
+### Mistake 1: Forgetting to Mark Visited Immediately
+
+**The Problem:**
+```python
+# ❌ WRONG: Mark visited AFTER exploring
+def dfs_wrong(node, visited):
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            dfs_wrong(neighbor, visited)
+    visited.add(node)  # TOO LATE! Revisits possible
+
+# ✅ CORRECT: Mark visited BEFORE exploring
+def dfs_correct(node, visited):
+    visited.add(node)  # Mark immediately
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            dfs_correct(neighbor, visited)
+```
+
+**Why it matters:** In cyclic graphs, a node can be reached via multiple paths. If you mark it after exploring neighbors, the same node gets reprocessed, causing:
+- Infinite loops
+- Exponential time complexity
+- Stack overflow
+
+---
+
+### Mistake 2: Forgetting Boundary Checks in Grids
+
+**The Problem:**
+```python
+# ❌ WRONG: Access before checking bounds
+def dfs_wrong(grid, i, j):
+    if grid[i][j] != 0:  # What if i < 0?
+        process(grid[i][j])
+
+# ✅ CORRECT: Check bounds FIRST
+def dfs_correct(grid, i, j):
+    if i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]):
+        return  # Out of bounds
+    if grid[i][j] == 0:
+        return  # Obstacle or visited
+    # Now safe to process
+    process(grid[i][j])
+```
+
+**Impact:** Index out of bounds errors leading to runtime crashes.
+
+---
+
+### Mistake 3: Using DFS for Shortest Path
+
+**The Problem:**
+```python
+# ❌ WRONG: DFS doesn't guarantee shortest path
+# DFS explores deeply, might find longer path first
+
+# ✅ CORRECT: Use BFS for shortest path
+def shortest_path_bfs(graph, start, end):
+    queue = deque([start])
+    distances = {start: 0}
+    while queue:
+        node = queue.popleft()
+        if node == end:
+            return distances[end]  # First found = shortest
+        for neighbor in graph[node]:
+            if neighbor not in distances:
+                distances[neighbor] = distances[node] + 1
+                queue.append(neighbor)
+    return -1  # No path
+```
+
+**Key insight:** BFS processes nodes by distance level, so first encounter = shortest path.
+
+---
+
+### Mistake 4: Incorrect Queue vs Stack Usage
+
+**The Problem:**
+```python
+# ❌ WRONG: Using list as queue (inefficient)
+queue = []
+queue.append(item)  # O(1)
+item = queue.pop(0)  # O(n) - slow!
+
+# ✅ CORRECT: Use deque for queue
+from collections import deque
+queue = deque()
+queue.append(item)  # O(1)
+item = queue.popleft()  # O(1) - fast!
+
+# ❌ WRONG: Using list as stack (ok but inconsistent)
+stack = []
+stack.append(item)  # O(1)
+item = stack.pop()  # O(1) - ok
+
+# ✅ CORRECT: Explicit stack usage
+stack = []
+stack.append(item)
+item = stack.pop()  # Clear intent
+```
+
+---
+
+## Dry Runs and Step-by-Step Walkthroughs
+
+### Example 1: Number of Islands
+
+**Problem Statement:**
+Count the number of islands in a 2D grid where '1' is land and '0' is water.
 
 **Input:**
 ```
@@ -429,135 +1252,193 @@ grid = [
 ]
 ```
 
-**Recognition:** "number of" + "islands" + "grid" → DFS/BFS to count connected components
+**Expected Output:** `3`
 
+#### Python Solution
 ```python
 def numIslands(grid):
+    """
+    Count number of disconnected components in grid.
+    
+    Approach:
+        1. Iterate through each cell
+        2. When finding unvisited land, start DFS
+        3. Mark entire island as visited
+        4. Increment island count
+    
+    Time: O(m × n) - visit each cell once
+    Space: O(m × n) - visited set
+    """
     if not grid:
         return 0
     
-    count = 0
+    rows, cols = len(grid), len(grid[0])
     visited = set()
+    count = 0
     
-    for i in range(len(grid)):
-        for j in range(len(grid[0])):
+    def dfs(r, c):
+        # Boundary and state check
+        if (r < 0 or r >= rows or c < 0 or c >= cols or
+            (r, c) in visited or grid[r][c] == '0'):
+            return
+        
+        visited.add((r, c))
+        
+        # Explore 4 neighbors
+        dfs(r - 1, c)  # up
+        dfs(r + 1, c)  # down
+        dfs(r, c - 1)  # left
+        dfs(r, c + 1)  # right
+    
+    # Scan entire grid
+    for i in range(rows):
+        for j in range(cols):
             if grid[i][j] == '1' and (i, j) not in visited:
-                dfs(grid, i, j, visited)
+                dfs(i, j)  # Explore entire island
                 count += 1
     
     return count
 
-def dfs(grid, row, col, visited):
-    if (row < 0 or row >= len(grid) or 
-        col < 0 or col >= len(grid[0]) or
-        (row, col) in visited or
-        grid[row][col] == '0'):
-        return
-    
-    visited.add((row, col))
-    
-    for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
-        dfs(grid, row + dr, col + dc, visited)
+
+# Test
+grid = [
+    ["1","1","0","0","0"],
+    ["1","1","0","0","0"],
+    ["0","0","1","0","0"],
+    ["0","0","0","1","1"]
+]
+print(f"Number of islands: {numIslands(grid)}")  # Output: 3
 ```
 
-```C++
-#include <vector>
-#include <unordered_set>
-
-class Solution {
-public:
-    int numIslands(std::vector<std::vector<char>>& grid) {
-        if (grid.empty() || grid[0].empty()) return 0;
-
-        int rows = grid.size();
-        int cols = grid[0].size();
-        int count = 0;
-        std::unordered_set<int> visited; // stores encoded (row,col)
-
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                if (grid[i][j] == '1' && visited.find(i * cols + j) == visited.end()) {
-                    dfs(grid, i, j, visited, rows, cols);
-                    ++count;
-                }
-            }
-        }
-        return count;
-    }
-
-private:
-    void dfs(std::vector<std::vector<char>>& grid,
-             int row, int col,
-             std::unordered_set<int>& visited,
-             int rows, int cols) {
-        // Out of bounds, already visited, or water
-        if (row < 0 || row >= rows || col < 0 || col >= cols ||
-            grid[row][col] == '0' ||
-            visited.find(row * cols + col) != visited.end()) {
-            return;
-        }
-
-        visited.insert(row * cols + col);
-
-        // Four-directional neighbours
-        dfs(grid, row - 1, col, visited, rows, cols);
-        dfs(grid, row + 1, col, visited, rows, cols);
-        dfs(grid, row, col - 1, visited, rows, cols);
-        dfs(grid, row, col + 1, visited, rows, cols);
-    }
-};
-```
-
-```Java
-import java.util.HashSet;
-
-class Solution {
-    public int numIslands(char[][] grid) {
-        if (grid == null || grid.length == 0 || grid[0].length == 0) {
+#### Java Solution
+```java
+public class IslandCounter {
+    public static int numIslands(char[][] grid) {
+        if (grid == null || grid.length == 0) {
             return 0;
         }
-
+        
         int rows = grid.length;
         int cols = grid[0].length;
+        boolean[][] visited = new boolean[rows][cols];
         int count = 0;
-        HashSet<Integer> visited = new HashSet<>(); // stores encoded (row,col)
-
+        
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                if (grid[i][j] == '1' && !visited.contains(i * cols + j)) {
-                    dfs(grid, i, j, visited, rows, cols);
+                if (grid[i][j] == '1' && !visited[i][j]) {
+                    dfs(grid, i, j, visited);
                     count++;
                 }
             }
         }
+        
         return count;
     }
-
-    private void dfs(char[][] grid,
-                     int row, int col,
-                     HashSet<Integer> visited,
-                     int rows, int cols) {
-        // Out of bounds, already visited, or water
+    
+    private static void dfs(char[][] grid, 
+                           int row, 
+                           int col, 
+                           boolean[][] visited) {
+        int rows = grid.length;
+        int cols = grid[0].length;
+        
+        // Boundary check
         if (row < 0 || row >= rows || col < 0 || col >= cols ||
-            grid[row][col] == '0' ||
-            visited.contains(row * cols + col)) {
+            visited[row][col] || grid[row][col] == '0') {
             return;
         }
-
-        visited.add(row * cols + col);
-
-        // Four-directional neighbours
-        dfs(grid, row - 1, col, visited, rows, cols);
-        dfs(grid, row + 1, col, visited, rows, cols);
-        dfs(grid, row, col - 1, visited, rows, cols);
-        dfs(grid, row, col + 1, visited, rows, cols);
+        
+        visited[row][col] = true;
+        
+        // 4-directional exploration
+        dfs(grid, row - 1, col, visited);  // up
+        dfs(grid, row + 1, col, visited);  // down
+        dfs(grid, row, col - 1, visited);  // left
+        dfs(grid, row, col + 1, visited);  // right
+    }
+    
+    public static void main(String[] args) {
+        char[][] grid = {
+            {'1','1','0','0','0'},
+            {'1','1','0','0','0'},
+            {'0','0','1','0','0'},
+            {'0','0','0','1','1'}
+        };
+        System.out.println("Number of islands: " + numIslands(grid));  // 3
     }
 }
 ```
 
+#### C++ Solution
+```cpp
+#include <iostream>
+#include <vector>
 
-**Step-by-step:**
+using namespace std;
 
+class IslandCounter {
+private:
+    void dfs(vector<vector<char>>& grid, 
+             int row, 
+             int col, 
+             vector<vector<bool>>& visited) {
+        int rows = grid.size();
+        int cols = grid[0].size();
+        
+        // Boundary check
+        if (row < 0 || row >= rows || col < 0 || col >= cols ||
+            visited[row][col] || grid[row][col] == '0') {
+            return;
+        }
+        
+        visited[row][col] = true;
+        
+        // 4-directional exploration
+        dfs(grid, row - 1, col, visited);  // up
+        dfs(grid, row + 1, col, visited);  // down
+        dfs(grid, row, col - 1, visited);  // left
+        dfs(grid, row, col + 1, visited);  // right
+    }
+
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        if (grid.empty() || grid[0].empty()) {
+            return 0;
+        }
+        
+        int rows = grid.size();
+        int cols = grid[0].size();
+        vector<vector<bool>> visited(rows, vector<bool>(cols, false));
+        int count = 0;
+        
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i][j] == '1' && !visited[i][j]) {
+                    dfs(grid, i, j, visited);
+                    count++;
+                }
+            }
+        }
+        
+        return count;
+    }
+};
+
+int main() {
+    IslandCounter ic;
+    vector<vector<char>> grid = {
+        {'1','1','0','0','0'},
+        {'1','1','0','0','0'},
+        {'0','0','1','0','0'},
+        {'0','0','0','1','1'}
+    };
+    
+    cout << "Number of islands: " << ic.numIslands(grid) << endl;  // 3
+    return 0;
+}
+```
+
+**Step-by-Step Walkthrough:**
 ```
 Grid:
   1 1 0 0 0
@@ -565,919 +1446,46 @@ Grid:
   0 0 1 0 0
   0 0 0 1 1
 
-Scan cell (0,0): '1' and not visited
-  → DFS from (0,0): visits (0,0), (0,1), (1,0), (1,1)
-  → Island 1 found, count = 1
+Scan:
+  (0,0): '1' not visited → DFS
+    Mark (0,0), (0,1), (1,0), (1,1) as visited
+    Island count = 1
+  
+  (0,1): '1' but visited → Skip
+  ...continue scanning...
+  
+  (2,2): '1' not visited → DFS
+    Mark (2,2) as visited
+    Island count = 2
+  
+  (3,3): '1' not visited → DFS
+    Mark (3,3), (3,4) as visited
+    Island count = 3
 
-Scan cell (0,1): '1' but already visited → skip
-Scan cell (0,2): '0' → skip
-...
-Scan cell (2,2): '1' and not visited
-  → DFS from (2,2): visits (2,2)
-  → Island 2 found, count = 2
-
-Scan cell (3,3): '1' and not visited
-  → DFS from (3,3): visits (3,3), (3,4)
-  → Island 3 found, count = 3
-
-Return 3
+Result: 3 islands ✓
 ```
 
 ---
 
-### Dry Run: Rotting Oranges (BFS)
+## Practice Problems
 
-**Problem:** Every minute, rotten oranges rot adjacent fresh oranges. Return the minimum minutes until no fresh orange remains. Return -1 if impossible.
+### Easy Level
+1. **Max Area of Island** - Find largest connected component
+2. **Flood Fill** - Similar to paint bucket tool
+3. **Same Tree** - DFS tree comparison
+4. **Balanced Binary Tree** - DFS validation
 
-**Input:**
-```
-grid = [
-  [2,1,1],
-  [1,1,0],
-  [0,1,1]
-]
-```
-(0=empty, 1=fresh, 2=rotten)
+### Medium Level
+1. **Rotting Oranges** - Multi-source BFS
+2. **Pacific Atlantic Water Flow** - DFS from edges
+3. **Number of Connected Components** - Union-Find alternative
+4. **Course Schedule** - Cycle detection in DAG
 
-**Recognition:** "minimum minutes" + "spread" + "grid" → Multi-source BFS
-
-```python
-from collections import deque
-
-def orangesRotting(grid):
-    queue = deque()
-    fresh = 0
-    m, n = len(grid), len(grid[0])
-    
-    # Find all rotten oranges (multiple sources)
-    for i in range(m):
-        for j in range(n):
-            if grid[i][j] == 2:
-                queue.append((i, j, 0))  # (row, col, minute)
-            elif grid[i][j] == 1:
-                fresh += 1
-    
-    if fresh == 0:
-        return 0
-    
-    max_minute = 0
-    
-    while queue:
-        row, col, minute = queue.popleft()
-        max_minute = max(max_minute, minute)
-        
-        for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
-            nr, nc = row + dr, col + dc
-            if (0 <= nr < m and 0 <= nc < n and grid[nr][nc] == 1):
-                grid[nr][nc] = 2  # rot it
-                fresh -= 1
-                queue.append((nr, nc, minute + 1))
-    
-    return max_minute if fresh == 0 else -1
-```
-
-```c++
-#include <queue>
-#include <vector>
-#include <algorithm>   // for max
-
-struct Cell {
-    int row, col, minute;
-};
-
-class Solution {
-public:
-    int orangesRotting(std::vector<std::vector<int>>& grid) {
-        if (grid.empty() || grid[0].empty()) return 0;
-
-        int m = grid.size();
-        int n = grid[0].size();
-        std::queue<Cell> q;
-        int fresh = 0;
-
-        // Initialize: find rotten oranges and count fresh
-        for (int i = 0; i < m; ++i) {
-            for (int j = 0; j < n; ++j) {
-                if (grid[i][j] == 2) {
-                    q.push({i, j, 0});
-                } else if (grid[i][j] == 1) {
-                    ++fresh;
-                }
-            }
-        }
-
-        if (fresh == 0) return 0;
-
-        int maxMinute = 0;
-        int dr[] = {-1, 1, 0, 0};
-        int dc[] = {0, 0, -1, 1};
-
-        while (!q.empty()) {
-            Cell cur = q.front();
-            q.pop();
-            maxMinute = std::max(maxMinute, cur.minute);
-
-            for (int dir = 0; dir < 4; ++dir) {
-                int nr = cur.row + dr[dir];
-                int nc = cur.col + dc[dir];
-
-                if (nr >= 0 && nr < m && nc >= 0 && nc < n && grid[nr][nc] == 1) {
-                    grid[nr][nc] = 2;          // rot the fresh orange
-                    --fresh;
-                    q.push({nr, nc, cur.minute + 1});
-                }
-            }
-        }
-
-        return (fresh == 0) ? maxMinute : -1;
-    }
-};
-```
-
-```Java
-
-import java.util.ArrayDeque;
-import java.util.Queue;
-
-class Solution {
-    public int orangesRotting(int[][] grid) {
-        if (grid == null || grid.length == 0 || grid[0].length == 0) {
-            return 0;
-        }
-
-        int m = grid.length;
-        int n = grid[0].length;
-        Queue<int[]> queue = new ArrayDeque<>(); // stores {row, col, minute}
-        int fresh = 0;
-
-        // Initialize: find rotten oranges and count fresh
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                if (grid[i][j] == 2) {
-                    queue.offer(new int[]{i, j, 0});
-                } else if (grid[i][j] == 1) {
-                    fresh++;
-                }
-            }
-        }
-
-        if (fresh == 0) return 0;
-
-        int maxMinute = 0;
-        int[] dr = {-1, 1, 0, 0};
-        int[] dc = {0, 0, -1, 1};
-
-        while (!queue.isEmpty()) {
-            int[] cur = queue.poll();
-            int row = cur[0], col = cur[1], minute = cur[2];
-            maxMinute = Math.max(maxMinute, minute);
-
-            for (int dir = 0; dir < 4; dir++) {
-                int nr = row + dr[dir];
-                int nc = col + dc[dir];
-
-                if (nr >= 0 && nr < m && nc >= 0 && nc < n && grid[nr][nc] == 1) {
-                    grid[nr][nc] = 2;          // rot the fresh orange
-                    fresh--;
-                    queue.offer(new int[]{nr, nc, minute + 1});
-                }
-            }
-        }
-
-        return (fresh == 0) ? maxMinute : -1;
-    }
-}
-```
-
-**Step-by-step:**
-
-```
-Initial grid:
-  2 1 1
-  1 1 0
-  0 1 1
-
-Queue: [(0,0,0)], fresh=6
-
-Minute 0: Process (0,0)
-  Rot (0,1) and (1,0)
-  Queue: [(0,1,1), (1,0,1)], fresh=4
-
-Minute 1: Process (0,1)
-  Rot (0,2) and (1,1)
-  Queue: [(1,0,1), (0,2,2), (1,1,2)], fresh=2
-
-Minute 1: Process (1,0)
-  (0,0) already rotten, (1,1) already rotten
-  Queue: [(0,2,2), (1,1,2)], fresh=2
-
-Minute 2: Process (0,2)
-  (0,1) already rotten, no other neighbors
-  Queue: [(1,1,2)], fresh=2
-
-Minute 2: Process (1,1)
-  Rot (2,1)
-  Queue: [(2,1,3)], fresh=1
-
-Minute 3: Process (2,1)
-  Rot (2,2)
-  Queue: [(2,2,4)], fresh=0
-
-Minute 4: Process (2,2)
-  (2,1) already rotten
-  Queue: [], fresh=0
-
-fresh == 0, return 4
-```
-
-**Verification:** After 4 minutes, all oranges are rotten. No fresh oranges remain. ✓
+### Hard Level
+1. **Longest Increasing Path** - DFS + Memoization
+2. **Word Ladder** - BFS shortest path
+3. **Alien Dictionary** - Topological sort
 
 ---
 
-### The "Visited" Pattern
-
-**Why track visited?**
-Without it, you'd revisit nodes, causing infinite loops in graphs with cycles.
-
-```python
-# With visited set (correct)
-visited = set()
-def dfs(node):
-    if node in visited:
-        return
-    visited.add(node)
-    for neighbor in graph[node]:
-        dfs(neighbor)
-
-# Without visited (infinite loop if cycle exists)
-def dfs(node):  # WRONG for graphs with cycles
-    for neighbor in graph[node]:
-        dfs(neighbor)
-```
-
-```c++
-# Correct DFS with visited set
-#include <unordered_set>
-#include <vector>
-
-void dfs_correct(int node, 
-                 const std::vector<std::vector<int>>& graph, 
-                 std::unordered_set<int>& visited) {
-    if (visited.find(node) != visited.end()) {
-        return;
-    }
-    visited.insert(node);
-    for (int neighbor : graph[node]) {
-        dfs_correct(neighbor, graph, visited);
-    }
-}
-
-// Usage example:
-// std::unordered_set<int> visited;
-// dfs_correct(start, graph, visited);
-
- Incorrect DFS (no visited – infinite loop on cycles)
-cpp
-#include <vector>
-
-
-// WARNING: This will recurse infinitely if the graph has a cycle.
-void dfs_incorrect(int node, const std::vector<std::vector<int>>& graph) {
-    for (int neighbor : graph[node]) {
-        dfs_incorrect(neighbor, graph);
-    }
-}
-```
-
-```Java
-
-1. Correct DFS with visited set
-java
-import java.util.HashSet;
-import java.util.List;
-
-public class GraphDFS {
-    public static void dfsCorrect(int node, 
-                                  List<List<Integer>> graph, 
-                                  HashSet<Integer> visited) {
-        if (visited.contains(node)) {
-            return;
-        }
-        visited.add(node);
-        for (int neighbor : graph.get(node)) {
-            dfsCorrect(neighbor, graph, visited);
-        }
-    }
-}
-
-// Usage example:
-// HashSet<Integer> visited = new HashSet<>();
-// dfsCorrect(start, graph, visited);
-2. Incorrect DFS (no visited – infinite loop on cycles)
-java
-import java.util.List;
-
-public class GraphDFS {
-    // WARNING: This will recurse infinitely if the graph has a cycle.
-    public static void dfsIncorrect(int node, List<List<Integer>> graph) {
-        for (int neighbor : graph.get(node)) {
-            dfsIncorrect(neighbor, graph);
-        }
-    }
-}
-
-```
-
-**Grid optimization:** Instead of a separate visited set, modify the grid in-place (e.g., mark visited cells as '0' or '#').
-
-```python
-def dfs(grid, i, j):
-    if i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]) or grid[i][j] != '1':
-        return
-    grid[i][j] = '#'  # Mark as visited
-    for di, dj in [(-1,0), (1,0), (0,-1), (0,1)]:
-        dfs(grid, i + di, j + dj)
-```
-
-```c++
-#include <vector>
-
-void dfs(std::vector<std::vector<char>>& grid, int i, int j) {
-    int rows = grid.size();
-    int cols = grid[0].size();
-
-    // Bounds and land check
-    if (i < 0 || i >= rows || j < 0 || j >= cols || grid[i][j] != '1') {
-        return;
-    }
-
-    // Mark as visited
-    grid[i][j] = '#';
-
-    // Four-directional neighbours
-    const int di[] = {-1, 1, 0, 0};
-    const int dj[] = {0, 0, -1, 1};
-
-    for (int dir = 0; dir < 4; ++dir) {
-        dfs(grid, i + di[dir], j + dj[dir]);
-    }
-}
-
-```
-```Java
-class Solution {
-    public void dfs(char[][] grid, int i, int j) {
-        int rows = grid.length;
-        int cols = grid[0].length;
-
-        // Bounds and land check
-        if (i < 0 || i >= rows || j < 0 || j >= cols || grid[i][j] != '1') {
-            return;
-        }
-
-        // Mark as visited
-        grid[i][j] = '#';
-
-        // Four-directional neighbours
-        int[] di = {-1, 1, 0, 0};
-        int[] dj = {0, 0, -1, 1};
-
-        for (int dir = 0; dir < 4; dir++) {
-            dfs(grid, i + di[dir], j + dj[dir]);
-        }
-    }
-}
-```
----
-
-### DFS vs BFS: When to Choose Which
-
-| Use DFS When | Use BFS When |
-|--------------|--------------|
-| Finding all paths | Finding shortest path |
-| Checking if path exists | Level-order traversal |
-| Topological sort | Minimum steps/layers |
-| Backtracking | Multi-source spread |
-| Memory is limited (deep trees) | Width is limited |
-| Solving mazes | Solving puzzles with fewest moves |
-
-**Memory consideration:**
-- DFS uses O(h) space where h = depth (can be O(n) in worst case)
-- BFS uses O(w) space where w = max width (can be O(n) in worst case)
-
-For very wide trees, DFS uses less memory. For very deep trees, BFS uses less memory.
-
----
-
-### Code Templates (4 Languages)
-
-#### Python
-
-```python
-# DFS Recursive
-def dfs(node, visited):
-    if node in visited:
-        return
-    visited.add(node)
-    for neighbor in graph[node]:
-        dfs(neighbor, visited)
-
-# DFS Iterative
-def dfs_iterative(start):
-    stack, visited = [start], set()
-    while stack:
-        node = stack.pop()
-        if node in visited:
-            continue
-        visited.add(node)
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                stack.append(neighbor)
-
-# BFS
-from collections import deque
-def bfs(start):
-    queue, visited = deque([start]), {start}
-    while queue:
-        node = queue.popleft()
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append(neighbor)
-```
-
-#### Java
-
-```java
-// DFS Recursive
-void dfs(int node, Set<Integer> visited) {
-    if (visited.contains(node)) return;
-    visited.add(node);
-    for (int neighbor : graph[node]) {
-        dfs(neighbor, visited);
-    }
-}
-
-// BFS
-void bfs(int start) {
-    Queue<Integer> queue = new LinkedList<>();
-    Set<Integer> visited = new HashSet<>();
-    queue.offer(start);
-    visited.add(start);
-    while (!queue.isEmpty()) {
-        int node = queue.poll();
-        for (int neighbor : graph[node]) {
-            if (!visited.contains(neighbor)) {
-                visited.add(neighbor);
-                queue.offer(neighbor);
-            }
-        }
-    }
-}
-```
-
-#### C++
-
-```cpp
-// DFS Recursive
-void dfs(int node, unordered_set<int>& visited) {
-    if (visited.count(node)) return;
-    visited.insert(node);
-    for (int neighbor : graph[node]) {
-        dfs(neighbor, visited);
-    }
-}
-
-// BFS
-void bfs(int start) {
-    queue<int> q;
-    unordered_set<int> visited;
-    q.push(start);
-    visited.insert(start);
-    while (!q.empty()) {
-        int node = q.front(); q.pop();
-        for (int neighbor : graph[node]) {
-            if (!visited.count(neighbor)) {
-                visited.insert(neighbor);
-                q.push(neighbor);
-            }
-        }
-    }
-}
-```
-
-#### JavaScript
-
-```javascript
-// DFS Recursive
-function dfs(node, visited) {
-    if (visited.has(node)) return;
-    visited.add(node);
-    for (const neighbor of graph[node]) {
-        dfs(neighbor, visited);
-    }
-}
-
-// BFS
-function bfs(start) {
-    const queue = [start];
-    const visited = new Set([start]);
-    while (queue.length) {
-        const node = queue.shift();
-        for (const neighbor of graph[node]) {
-            if (!visited.has(neighbor)) {
-                visited.add(neighbor);
-                queue.push(neighbor);
-            }
-        }
-    }
-}
-```
-
----
-
-### Common Mistakes
-
-#### Mistake 1: Forgetting to Mark Visited Before Recursing
-
-```python
-# WRONG: might visit same node multiple times in same path
-def dfs(node, visited):
-    for neighbor in graph[node]:
-        if neighbor not in visited:
-            dfs(neighbor, visited)
-    visited.add(node)  # Too late!
-
-# RIGHT: mark as visited when you first encounter it
-def dfs(node, visited):
-    visited.add(node)
-    for neighbor in graph[node]:
-        if neighbor not in visited:
-            dfs(neighbor, visited)
-```
-
-```c++
- Incorrect: marks visited too late
-cpp
-#include <unordered_set>
-#include <vector>
-
-// WRONG: node is added to 'visited' only after exploring all neighbours.
-// In a cyclic graph, the same node can be reached from different paths
-// before it is marked, causing repeated processing.
-void dfs_wrong(int node,
-               const std::vector<std::vector<int>>& graph,
-               std::unordered_set<int>& visited) {
-    for (int neighbor : graph[node]) {
-        if (visited.find(neighbor) == visited.end()) {
-            dfs_wrong(neighbor, graph, visited);
-        }
-    }
-    visited.insert(node);   // Too late! Node was already processed multiple times.
-}
-✅ Correct: marks before exploring
-cpp
-#include <unordered_set>
-#include <vector>
-
-// RIGHT: mark the current node as visited immediately upon entry.
-// This ensures each node is processed exactly once, even in cyclic graphs.
-void dfs_correct(int node,
-                 const std::vector<std::vector<int>>& graph,
-                 std::unordered_set<int>& visited) {
-    visited.insert(node);   // Mark before recursing
-    for (int neighbor : graph[node]) {
-        if (visited.find(neighbor) == visited.end()) {
-            dfs_correct(neighbor, graph, visited);
-        }
-    }
-}
-```
-
-```Java
- Incorrect: marks visited too late
-java
-import java.util.HashSet;
-import java.util.List;
-
-public class DFS {
-    // WRONG: node is added to 'visited' only after exploring all neighbours.
-    // In a cyclic graph, the same node can be reached from different paths
-    // before it is marked, causing repeated processing.
-    public static void dfsWrong(int node,
-                                List<List<Integer>> graph,
-                                HashSet<Integer> visited) {
-        for (int neighbor : graph.get(node)) {
-            if (!visited.contains(neighbor)) {
-                dfsWrong(neighbor, graph, visited);
-            }
-        }
-        visited.add(node);   // Too late! Node was already processed multiple times.
-    }
-}
-✅ Correct: marks before exploring
-java
-import java.util.HashSet;
-import java.util.List;
-
-public class DFS {
-    // RIGHT: mark the current node as visited immediately upon entry.
-    // This ensures each node is processed exactly once, even in cyclic graphs.
-    public static void dfsCorrect(int node,
-                                  List<List<Integer>> graph,
-                                  HashSet<Integer> visited) {
-        visited.add(node);   // Mark before recursing
-        for (int neighbor : graph.get(node)) {
-            if (!visited.contains(neighbor)) {
-                dfsCorrect(neighbor, graph, visited);
-            }
-        }
-    }
-}
-```
-
-#### Mistake 2: Off-by-One in Grid Boundaries
-
-```python
-# WRONG: might access out-of-bounds
-def dfs(grid, i, j):
-    if grid[i][j] == '0':  # What if i or j is negative?
-        return
-
-# RIGHT: check bounds first
-def dfs(grid, i, j):
-    if i < 0 or i >= len(grid) or j < 0 or j >= len(grid[0]):
-        return
-    if grid[i][j] == '0':
-        return
-```
-
-```c++
-C++ Versions
-❌ Incorrect: out‑of‑bounds access possible
-cpp
-#include <vector>
-
-// WRONG: This accesses grid[i][j] before verifying i and j are valid.
-// If i or j is negative or out of range, the program may crash or behave unpredictably.
-void dfs_wrong(std::vector<std::vector<char>>& grid, int i, int j) {
-    if (grid[i][j] == '0') {  // DANGER: i or j may be out of bounds!
-        return;
-    }
-    // Process land...
-}
-✅ Correct: check bounds first
-cpp
-#include <vector>
-
-// RIGHT: Always validate indices before accessing the grid.
-void dfs_correct(std::vector<std::vector<char>>& grid, int i, int j) {
-    int rows = grid.size();
-    int cols = grid[0].size();
-
-    if (i < 0 || i >= rows || j < 0 || j >= cols) {
-        return;  // Out of bounds – safe exit
-    }
-    if (grid[i][j] == '0') {
-        return;  // Water – stop exploring
-    }
-    // Now it's safe to process land ('1')...
-}
-```
-
-```jAVA
-Java Versions
-❌ Incorrect: out‑of‑bounds access possible
-java
-class Solution {
-    // WRONG: This accesses grid[i][j] before checking bounds.
-    // If i or j is out of range, an ArrayIndexOutOfBoundsException will be thrown.
-    public void dfsWrong(char[][] grid, int i, int j) {
-        if (grid[i][j] == '0') {  // DANGER: i or j may be invalid!
-            return;
-        }
-        // Process land...
-    }
-}
-✅ Correct: check bounds first
-java
-class Solution {
-    // RIGHT: Always validate indices before accessing the grid.
-    public void dfsCorrect(char[][] grid, int i, int j) {
-        int rows = grid.length;
-        int cols = grid[0].length;
-
-        if (i < 0 || i >= rows || j < 0 || j >= cols) {
-            return;  // Out of bounds – safe exit
-        }
-        if (grid[i][j] == '0') {
-            return;  // Water – stop exploring
-        }
-        // Now it's safe to process land ('1')...
-    }
-}
-```
-
-#### Mistake 3: Using DFS for Shortest Path
-
-```python
-# WRONG: DFS doesn't guarantee shortest path
-def shortest_path_dfs(graph, start, end):
-    # DFS might find a longer path first
-
-# RIGHT: use BFS for shortest path in unweighted graph
-def shortest_path_bfs(graph, start, end):
-    queue = deque([(start, 0)])
-    visited = {start}
-    while queue:
-        node, dist = queue.popleft()
-        if node == end:
-            return dist
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append((neighbor, dist + 1))
-```
-
-```❌ WRONG: DFS (does NOT guarantee shortest path)
-This implementation returns the distance of the first path it finds to end. Because DFS explores deeply before backtracking, that path may be longer than the shortest one.
-
-C++
-cpp
-#include <unordered_set>
-#include <vector>
-#include <climits>
-
-// Returns distance from 'node' to 'end', or -1 if not found.
-// NOT GUARANTEED SHORTEST – it may return a longer path.
-int dfs_wrong(int node, int end, int depth,
-              const std::vector<std::vector<int>>& graph,
-              std::unordered_set<int>& visited) {
-    if (node == end) return depth;
-
-    visited.insert(node);
-
-    for (int neighbor : graph[node]) {
-        if (visited.find(neighbor) == visited.end()) {
-            int result = dfs_wrong(neighbor, end, depth + 1, graph, visited);
-            if (result != -1) return result;  // returns on first found path
-        }
-    }
-    return -1;
-}
-
-// Wrapper
-int shortest_path_dfs_wrong(int start, int end, const std::vector<std::vector<int>>& graph) {
-    std::unordered_set<int> visited;
-    return dfs_wrong(start, end, 0, graph, visited);
-}
-Java
-java
-import java.util.HashSet;
-import java.util.List;
-
-public class GraphDFSWrong {
-    // Returns distance from 'node' to 'end', or -1 if not found.
-    // NOT GUARANTEED SHORTEST – it may return a longer path.
-    private static int dfsWrong(int node, int end, int depth,
-                                List<List<Integer>> graph,
-                                HashSet<Integer> visited) {
-        if (node == end) return depth;
-
-        visited.add(node);
-
-        for (int neighbor : graph.get(node)) {
-            if (!visited.contains(neighbor)) {
-                int result = dfsWrong(neighbor, end, depth + 1, graph, visited);
-                if (result != -1) return result;  // returns on first found path
-            }
-        }
-        return -1;
-    }
-
-    public static int shortestPathDfsWrong(int start, int end, List<List<Integer>> graph) {
-        HashSet<Integer> visited = new HashSet<>();
-        return dfsWrong(start, end, 0, graph, visited);
-    }
-}
-✅ RIGHT: BFS for shortest path in unweighted graph
-BFS processes nodes in order of increasing distance, so the first time we reach end we know it is the shortest distance.
-
-C++
-cpp
-#include <queue>
-#include <unordered_set>
-#include <vector>
-#include <utility>
-
-int shortest_path_bfs(int start, int end, const std::vector<std::vector<int>>& graph) {
-    std::queue<std::pair<int, int>> q;  // {node, distance}
-    std::unordered_set<int> visited;
-
-    q.push({start, 0});
-    visited.insert(start);
-
-    while (!q.empty()) {
-        auto [node, dist] = q.front();
-        q.pop();
-
-        if (node == end) return dist;
-
-        for (int neighbor : graph[node]) {
-            if (visited.find(neighbor) == visited.end()) {
-                visited.insert(neighbor);
-                q.push({neighbor, dist + 1});
-            }
-        }
-    }
-    return -1;  // no path found
-}
-Java
-java
-import java.util.*;
-
-public class GraphBFS {
-    public static int shortestPathBfs(int start, int end, List<List<Integer>> graph) {
-        Queue<int[]> queue = new ArrayDeque<>();  // stores {node, distance}
-        HashSet<Integer> visited = new HashSet<>();
-
-        queue.offer(new int[]{start, 0});
-        visited.add(start);
-
-        while (!queue.isEmpty()) {
-            int[] curr = queue.poll();
-            int node = curr[0];
-            int dist = curr[1];
-
-            if (node == end) return dist;
-
-            for (int neighbor : graph.get(node)) {
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
-                    queue.offer(new int[]{neighbor, dist + 1});
-                }
-            }
-        }
-        return -1;  // no path found
-    }
-}
-
-```
-
----
-
-### Practice Problems
-
-#### Easy
-
-| # | Problem | Technique |
-|---|---------|-----------|
-| 1 | [733. Flood Fill](https://leetcode.com/problems/flood-fill/) | DFS/BFS on grid |
-| 2 | [200. Number of Islands](https://leetcode.com/problems/number-of-islands/) | DFS/BFS grid components |
-| 3 | [733. Max Area of Island](https://leetcode.com/problems/max-area-of-island/) | DFS grid |
-| 4 | [100. Same Tree](https://leetcode.com/problems/same-tree/) | DFS tree |
-| 5 | [617. Merge Two Binary Trees](https://leetcode.com/problems/merge-two-binary-trees/) | DFS tree |
-
-#### Medium
-
-| # | Problem | Technique |
-|---|---------|-----------|
-| 6 | [994. Rotting Oranges](https://leetcode.com/problems/rotting-oranges/) | Multi-source BFS |
-| 7 | [130. Surrounded Regions](https://leetcode.com/problems/surrounded-regions/) | DFS from borders |
-| 8 | [133. Clone Graph](https://leetcode.com/problems/clone-graph/) | DFS/BFS + HashMap |
-| 9 | [207. Course Schedule](https://leetcode.com/problems/course-schedule/) | DFS cycle detection |
-| 10 | [210. Course Schedule II](https://leetcode.com/problems/course-schedule-ii/) | Topological sort |
-| 11 | [547. Number of Provinces](https://leetcode.com/problems/number-of-provinces/) | DFS components |
-| 12 | [695. Max Area of Island](https://leetcode.com/problems/max-area-of-island/) | DFS |
-| 13 | [417. Pacific Atlantic Water Flow](https://leetcode.com/problems/pacific-atlantic-water-flow/) | DFS from edges |
-| 14 | [1091. Shortest Path in Binary Matrix](https://leetcode.com/problems/shortest-path-in-binary-matrix/) | BFS |
-
-#### Hard
-
-| # | Problem | Technique |
-|---|---------|-----------|
-| 15 | [127. Word Ladder](https://leetcode.com/problems/word-ladder/) | BFS |
-| 16 | [329. Longest Increasing Path in Matrix](https://leetcode.com/problems/longest-increasing-path-in-a-matrix/) | DFS + Memoization |
-| 17 | [773. Sliding Puzzle](https://leetcode.com/problems/sliding-puzzle/) | BFS on state space |
-
----
-
-### Interview Tips
-
-1. **State your choice clearly.** "I'm using BFS because I need the shortest path." or "I'm using DFS because I need to explore all paths."
-
-2. **Mention the visited set.** "I'll track visited nodes to avoid cycles."
-
-3. **For grids, mention the 4-directional movement.** "Each cell has up to 4 neighbors."
-
-4. **Complexity analysis.** "For a grid, we visit each cell at most once, so it's O(m × n)."
-
-5. **Edge cases:**
-   - Empty grid/graph
-   - Single node
-   - Disconnected components
-   - No valid path
-
----
-
-*Next: [10 — Backtracking](10-Backtracking.md)*
+**Next: [10 — Backtracking](10-Backtracking.md)**

@@ -455,4 +455,4 @@ seen = {0: 1}
 
 ---
 
-*Next: [05 — Monotonic Stack](05-Monotonic-Stack.md)*
+*Next: [05 — Monotonic Stack](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/DSA%20Handbook/Monotonic-stack.md)*

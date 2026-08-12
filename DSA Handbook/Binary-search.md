@@ -769,4 +769,4 @@ Wait—actually we want to MINIMIZE the maximum gap. So:
 
 ---
 
-*Next: [04 — Prefix Sum and HashMap](Prefix-Sum-and-HashMap.md)*
+*Next: [04 — Prefix Sum and HashMap](https://github.com/Aditya-myst/Interview-PlayBook/edit/main/DSA%20Handbook/Prefix-Sum-and-HashMap.md)*

@@ -510,4 +510,4 @@ heapq.heappush(heap, (freq, i, num))  # i breaks ties
 
 ---
 
-*Next: [07 — Linked Lists](07-Linked-Lists.md)*
+*Next: [07 — Linked Lists](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/DSA%20Handbook/Linked-Lists.md)*

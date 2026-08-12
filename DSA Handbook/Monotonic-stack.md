@@ -472,4 +472,4 @@ heights.append(0)
 
 ---
 
-*Next: [06 — Heap / Priority Queue](06-Heap-PriorityQueue.md)*
+*Next: [06 — Heap / Priority Queue](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/DSA%20Handbook/Heap-priority-queue.md)*

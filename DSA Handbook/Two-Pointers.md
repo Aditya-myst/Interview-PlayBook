@@ -738,4 +738,4 @@ Sub-Type: Fast & Slow
 
 ---
 
-*Next: [03 — Binary Search](03-Binary-Search.md)*
+*Next: [03 — Binary Search](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/DSA%20Handbook/Binary-search.md)*

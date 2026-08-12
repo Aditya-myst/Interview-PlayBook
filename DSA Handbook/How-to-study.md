@@ -268,7 +268,7 @@ Pick one language for your interview prep and stick with it. Don't switch langua
 
 ### Let's Begin
 
-Start with [01 — Sliding Window](01-Sliding-Window.md). It's the highest-ROI pattern for interviews and the easiest to learn.
+Start with [01 — Sliding Window](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/DSA%20Handbook/Sliding-window.md). It's the highest-ROI pattern for interviews and the easiest to learn.
 
 Or jump to whichever pattern you need most. The chapters are self-contained.
 

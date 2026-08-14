@@ -1,4 +1,4 @@
-# 07 — CI/CD
+# 07 —  CI/CD
 
 ## Automated Testing and Deployment
 

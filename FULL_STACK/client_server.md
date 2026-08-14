@@ -1,4 +1,4 @@
-# 01 — Client-Server Architecture
+# 01 — Client-Server   Architecture
 
 ## Understanding the Full Picture
 

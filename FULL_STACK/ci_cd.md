@@ -1,6 +1,6 @@
 # 07 —  CI/CD
 
-## Automated Testing and Deployment
+## Automated Testing and Deployment 
 
 ---
 

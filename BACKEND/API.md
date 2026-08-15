@@ -25,7 +25,7 @@ Client (Browser/App)          Server (Backend)
 
 The most common API architecture. Uses HTTP methods to operate on resources.
 
-#### REST Principles
+#### REST Principles   
 
 | Principle | Description |
 |-----------|-------------|

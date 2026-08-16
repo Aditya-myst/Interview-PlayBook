@@ -1,0 +1,354 @@
+# 09 — System Design Fundamentals
+
+## Scalability, Load Balancing, High Availability — 40+ Interview Questions
+
+---
+
+### Scalability
+
+```javascript
+// Vertical Scaling: More resources on single server
+// Horizontal Scaling: Add more servers
+
+// Load Balancer Configuration (Nginx)
+upstream backend {
+    least_conn;
+    server backend1.example.com;
+    server backend2.example.com;
+    server backend3.example.com;
+}
+```
+
+---
+
+### CAP Theorem
+
+| Property | Meaning |
+|----------|---------|
+| **Consistency** | Every read receives the most recent write |
+| **Availability** | Every request receives a response |
+| **Partition Tolerance** | System continues despite network failures |
+
+---
+
+### Interview Questions (40+)
+
+**Q1: How would you design a URL shortener?**
+A: "POST /urls → generate short code (base62 of hash) → store in DB → return short URL. GET /:code → lookup → redirect. Redis for caching popular URLs. Handle collisions with retry."
+
+**Q2: How would you design a rate limiter?**
+A: "Track requests per client in Redis. Use sliding window or token bucket algorithm. Return 429 with Retry-After header. Different limits for different endpoints."
+
+**Q3: How would you design a notification system?**
+A: "API to create notification → store in DB → push to queue → workers process by channel (email, SMS, push). WebSocket for real-time. Queue ensures reliability."
+
+**Q4: How would you design a chat application?**
+A: "WebSocket for real-time messaging. Store messages in DB. Message queue for delivery. Presence service for online status. Group chat with channels."
+
+**Q5: How would you design a file storage system?**
+A: "Store files in object storage (S3). Metadata in database. CDN for delivery. Chunked upload for large files. Access control with signed URLs."
+
+**Q6: How do you ensure high availability?**
+A: "Multiple servers behind load balancer. Database replication. Health checks. Circuit breakers. Graceful degradation. Monitoring and alerting."
+
+**Q7: What is horizontal vs vertical scaling?**
+A: "Vertical: more resources on single server (CPU, RAM). Horizontal: add more servers. Vertical limited by hardware; horizontal scales indefinitely."
+
+**Q8: What is load balancing?**
+A: "Distribute requests across servers. Algorithms: round robin, least connections, IP hash. Health checks to remove unhealthy servers. Tools: Nginx, HAProxy, AWS ALB."
+
+**Q9: What is CDN?**
+A: "Content Delivery Network. Caches content at edge locations. Reduces latency. Serves static assets. Examples: CloudFront, Cloudflare, Akamai."
+
+**Q10: What is database sharding?**
+A: "Split data across servers. Strategies: range, hash, directory. Benefits: write scalability. Challenges: cross-shard queries, rebalancing."
+
+**Q11: What is caching strategy?**
+A: "Cache-aside: app manages cache. Write-through: write to cache + DB. Write-behind: cache first, DB async. Read-through: cache loads from DB."
+
+**Q12: How do you handle database replication?**
+A: "Primary-replica: writes to primary, reads from replicas. Multi-primary: writes to any. Benefits: read scalability, high availability."
+
+**Q13: What is eventual consistency?**
+A: "Replicas converge to same state over time. Used in distributed systems. Trade-off: may read stale data. Acceptable for many use cases."
+
+**Q14: How do you design for millions of users?**
+A: "Horizontal scaling. Load balancing. Caching (Redis, CDN). Database sharding. Microservices. Async processing with queues."
+
+**Q15: What is message queue pattern?**
+A: "Async communication between services. Decouples producers and consumers. Handles spikes. Ensures reliability. Examples: Kafka, RabbitMQ."
+
+**Q16: How do you handle distributed transactions?**
+A: "Saga pattern with compensating actions. Two-phase commit (complex). Eventual consistency (most common). Choose based on requirements."
+
+**Q17: What is API gateway?**
+A: "Single entry point for all requests. Handles routing, authentication, rate limiting, logging. Simplifies client. Centralizes cross-cutting concerns."
+
+**Q18: How do you monitor a distributed system?**
+A: "Distributed tracing (Jaeger). Centralized logging (ELK). Metrics (Prometheus, Grafana). Health checks. Alerting on anomalies."
+
+**Q19: What is circuit breaker pattern?**
+A: "Prevent cascading failures. States: closed, open, half-open. Trip on error threshold. Fallback to cached/default response."
+
+**Q20: How do you handle data consistency?**
+A: "Choose consistency model based on requirements. Strong consistency: synchronous replication. Eventual consistency: async replication."
+
+**Q21: What is microservices architecture?**
+A: "Application as suite of small services. Each service independently deployable. Communication via APIs/events. Benefits: scalability, flexibility."
+
+**Q22: How do you design a search system?**
+A: "Elasticsearch for full-text search. Indexing pipeline. Ranking algorithm. Autocomplete with prefix matching. Faceted search."
+
+**Q23: What is database indexing?**
+A: "Data structure (B-tree, hash) for fast lookups. Speeds up SELECT, slows down INSERT/UPDATE. Choose indexes based on query patterns."
+
+**Q24: How do you handle caching invalidation?**
+A: "TTL-based. Manual on write. Event-based for microservices. Cache stampede prevention with locking."
+
+**Q25: What is blue-green deployment?**
+A: "Two identical environments. Switch traffic from blue to green. Instant rollback. Zero downtime."
+
+**Q26: How do you design a payment system?**
+A: "Idempotent operations. Saga pattern for distributed transactions. Webhook notifications. PCI compliance. Retry with exponential backoff."
+
+**Q27: What is database connection pooling?**
+A: "Reuse database connections. Pool maintains ready connections. Configure max based on concurrent requests. Handle connection errors."
+
+**Q28: How do you handle service failures?**
+A: "Circuit breaker, retry with backoff, fallback responses, bulkhead isolation. Monitor and alert."
+
+**Q29: What is consistent hashing?**
+A: "Distribute data across nodes. Minimizes redistribution when nodes added/removed. Used in distributed caches, sharding."
+
+**Q30: How do you design a real-time analytics system?**
+A: "Stream processing (Kafka Streams, Flink). Time-series database (InfluxDB). Real-time dashboards. Aggregation pipelines."
+
+**Q31: What is database partitioning?**
+A: "Split table into smaller pieces. Horizontal: rows across partitions. Vertical: columns. Improves query performance."
+
+**Q32: How do you handle API versioning?**
+A: "URL path (/v1/users). Query parameter. Header. Deprecation strategy. Backward compatibility."
+
+**Q33: What is service mesh?**
+A: "Infrastructure for service communication. Handles load balancing, retries, mTLS, observability. Examples: Istio, Linkerd."
+
+**Q34: How do you design for global users?**
+A: "Multi-region deployment. CDN for static content. Database replication across regions. Geo-based routing. Handle data sovereignty."
+
+**Q35: What is event sourcing?**
+A: "Store events instead of current state. Replay to rebuild state. Audit trail. Complex queries need CQRS."
+
+**Q36: How do you handle hot partitions?**
+A: "Consistent hashing. Split hot partitions. Cache hot data. Read replicas for hot data."
+
+**Q37: What is backpressure?**
+A: "When system overwhelmed. Solutions: rate limiting, queue buffering, load shedding. Graceful degradation."
+
+**Q38: How do you design a booking system?**
+A: "Inventory management. Reservation with timeout. Payment processing. Notification. Handle concurrent bookings with locks."
+
+**Q39: What is idempotency?**
+A: "Same operation multiple times = same result. Important for retries. Use idempotency keys. Database constraints."
+
+**Q40: How do you design for 99.99% availability?**
+A: "Multiple redundancy layers. No single point of failure. Automated failover. Chaos engineering. Comprehensive monitoring."
+
+---
+
+### Complete System Design Implementations
+
+#### URL Shortener
+
+```javascript
+const express = require('express');
+const crypto = require('crypto');
+const redis = require('./redis');
+const db = require('./db');
+
+const app = express();
+
+// Generate short code
+function generateShortCode(url) {
+    const hash = crypto.createHash('md5').update(url).digest('base64');
+    return hash.substring(0, 7).replace(/[+/=]/g, 'x');
+}
+
+// Create short URL
+app.post('/api/urls', async (req, res) => {
+    const { url } = req.body;
+    
+    // Check if URL already exists
+    const existing = await db.query('SELECT * FROM urls WHERE original_url = $1', [url]);
+    if (existing.rows[0]) {
+        return res.json({ shortUrl: `https://short.ly/${existing.rows[0].short_code}` });
+    }
+    
+    // Generate unique short code
+    let shortCode = generateShortCode(url);
+    let attempts = 0;
+    while (attempts < 5) {
+        const exists = await db.query('SELECT 1 FROM urls WHERE short_code = $1', [shortCode]);
+        if (!exists.rows[0]) break;
+        shortCode = generateShortCode(url + attempts);
+        attempts++;
+    }
+    
+    // Store in database
+    await db.query('INSERT INTO urls (short_code, original_url) VALUES ($1, $2)', [shortCode, url]);
+    
+    // Cache in Redis
+    await redis.set(`url:${shortCode}`, url, 'EX', 86400);
+    
+    res.status(201).json({ shortUrl: `https://short.ly/${shortCode}` });
+});
+
+// Redirect to original URL
+app.get('/:code', async (req, res) => {
+    const { code } = req.params;
+    
+    // Check cache first
+    let url = await redis.get(`url:${code}`);
+    
+    if (!url) {
+        // Query database
+        const result = await db.query('SELECT original_url FROM urls WHERE short_code = $1', [code]);
+        if (!result.rows[0]) {
+            return res.status(404).json({ error: 'URL not found' });
+        }
+        url = result.rows[0].original_url;
+        
+        // Cache for future requests
+        await redis.set(`url:${code}`, url, 'EX', 86400);
+    }
+    
+    // Increment click count (async)
+    redis.incr(`clicks:${code}`);
+    
+    res.redirect(301, url);
+});
+```
+
+#### Rate Limiter
+
+```javascript
+const redis = require('./redis');
+
+class RateLimiter {
+    constructor(windowMs, maxRequests) {
+        this.windowMs = windowMs;
+        this.maxRequests = maxRequests;
+    }
+    
+    async isAllowed(key) {
+        const now = Date.now();
+        const windowStart = now - this.windowMs;
+        
+        // Remove old entries
+        await redis.zremrangebyscore(key, 0, windowStart);
+        
+        // Count current requests
+        const count = await redis.zcard(key);
+        
+        if (count >= this.maxRequests) {
+            return false;
+        }
+        
+        // Add current request
+        await redis.zadd(key, now, `${now}-${Math.random()}`);
+        await redis.expire(key, Math.ceil(this.windowMs / 1000));
+        
+        return true;
+    }
+    
+    middleware() {
+        return async (req, res, next) => {
+            const key = `rate:${req.ip}`;
+            const allowed = await this.isAllowed(key);
+            
+            if (!allowed) {
+                return res.status(429).json({
+                    error: {
+                        code: 'RATE_LIMITED',
+                        message: 'Too many requests',
+                        retryAfter: Math.ceil(this.windowMs / 1000)
+                    }
+                });
+            }
+            
+            next();
+        };
+    }
+}
+
+// Usage
+const limiter = new RateLimiter(15 * 60 * 1000, 100); // 100 requests per 15 minutes
+app.use('/api/', limiter.middleware());
+```
+
+---
+
+### Additional Interview Questions (20+)
+
+**Q41: How do you design a notification system?**
+A: "API to create notification → store in DB → push to queue → workers process by channel (email, SMS, push). WebSocket for real-time. Queue ensures reliability. Support multiple channels."
+
+**Q42: How do you design a chat application?**
+A: "WebSocket for real-time messaging. Store messages in DB. Message queue for delivery. Presence service for online status. Group chat with channels."
+
+**Q43: What is consistent hashing?**
+A: "Distribute data across nodes. Minimizes redistribution when nodes added/removed. Used in distributed caches, sharding. Virtual nodes for better distribution."
+
+**Q44: How do you design a search system?**
+A: "Elasticsearch for full-text search. Indexing pipeline. Ranking algorithm. Autocomplete with prefix matching. Faceted search."
+
+**Q45: What is backpressure?**
+A: "When system overwhelmed. Solutions: rate limiting, queue buffering, load shedding. Graceful degradation. Implement with queues."
+
+**Q46: How do you design a booking system?**
+A: "Inventory management. Reservation with timeout. Payment processing. Notification. Handle concurrent bookings with locks."
+
+**Q47: How do you design for 99.99% availability?**
+A: "Multiple redundancy layers. No single point of failure. Automated failover. Chaos engineering. Comprehensive monitoring."
+
+**Q48: What is database connection pooling?**
+A: "Reuse database connections. Pool maintains ready connections. Configure max based on concurrent requests. Handle connection errors."
+
+**Q49: How do you handle service failures?**
+A: "Circuit breaker, retry with backoff, fallback responses, bulkhead isolation. Monitor and alert."
+
+**Q50: How do you design a real-time analytics system?**
+A: "Stream processing (Kafka Streams, Flink). Time-series database (InfluxDB). Real-time dashboards. Aggregation pipelines."
+
+**Q51: What is database partitioning?**
+A: "Split table into smaller pieces. Horizontal: rows across partitions. Vertical: columns. Improves query performance."
+
+**Q52: How do you handle API versioning?**
+A: "URL path (/v1/users). Query parameter. Header. Deprecation strategy. Backward compatibility."
+
+**Q53: What is service mesh?**
+A: "Infrastructure for service communication. Handles load balancing, retries, mTLS, observability. Examples: Istio, Linkerd."
+
+**Q54: How do you design for global users?**
+A: "Multi-region deployment. CDN for static content. Database replication across regions. Geo-based routing. Handle data sovereignty."
+
+**Q55: What is event sourcing?**
+A: "Store events instead of current state. Replay to rebuild state. Audit trail. Complex queries need CQRS."
+
+**Q56: How do you handle hot partitions?**
+A: "Consistent hashing. Split hot partitions. Cache hot data. Read replicas for hot data."
+
+**Q57: How do you design a payment system?**
+A: "Idempotent operations. Saga pattern for distributed transactions. Webhook notifications. PCI compliance. Retry with exponential backoff."
+
+**Q58: What is idempotency?**
+A: "Same operation multiple times = same result. Important for retries. Use idempotency keys. Database constraints."
+
+**Q59: How do you design for millions of users?**
+A: "Horizontal scaling. Load balancing. Caching (Redis, CDN). Database sharding. Microservices. Async processing with queues."
+
+**Q60: How do you monitor a distributed system?**
+A: "Distributed tracing (Jaeger). Centralized logging (ELK). Metrics (Prometheus, Grafana). Health checks. Alerting on anomalies."
+
+---
+
+*Next: [10 — Security & OWASP](10-Security.md)*

@@ -166,7 +166,7 @@ type Post {
 }
 
 type Query {
-    user(id: ID!): User
+    user(id: ID!): User  
     users(limit: Int, offset: Int): [User!]!
     post(id: ID!): Post
 }

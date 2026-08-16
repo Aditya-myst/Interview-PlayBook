@@ -1,14 +1,10 @@
-# 02 — API Design & Best Practices
+# 02 — API Design Best Practices
 
-## Versioning, Pagination, Error Handling
+## Versioning, Pagination, Error Handling, Rate Limiting
 
 ---
 
-### API Versioning
-
-When you change your API, you need versioning to avoid breaking existing clients.
-
-#### Versioning Strategies
+### API Versioning Strategies
 
 | Strategy | Example | Pros | Cons |
 |----------|---------|------|------|
@@ -17,50 +13,54 @@ When you change your API, you need versioning to avoid breaking existing clients
 | **Header** | `Accept: application/vnd.api.v1+json` | Clean URLs | Hidden |
 | **Content Negotiation** | `Accept: application/json;version=1` | RESTful | Complex |
 
-**Most common: URL path versioning**
+**Best practice: URL path versioning for public APIs**
 
 ```javascript
-// Express.js versioning
 app.use('/v1/users', usersV1Router);
 app.use('/v2/users', usersV2Router);
+
+// Deprecation header
+app.use('/v1/*', (req, res, next) => {
+    res.set('Sunset', 'Sat, 01 Jan 2027 00:00:00 GMT');
+    res.set('Deprecation', 'true');
+    res.set('Link', '</v2/users>; rel="successor-version"');
+    next();
+});
 ```
 
 ---
 
 ### Pagination
 
-Don't return all records at once—paginate large result sets.
-
-#### Offset-Based Pagination
-
-```sql
--- SQL
-SELECT * FROM users ORDER BY id LIMIT 10 OFFSET 20;
-
--- API
-GET /users?limit=10&offset=20
-```
+#### Offset-Based
 
 ```javascript
+GET /api/users?limit=10&offset=20
+
 // Response
 {
     "data": [...],
     "pagination": {
-        "total": 100,
+        "total": 1000,
         "limit": 10,
         "offset": 20,
-        "hasMore": true
+        "hasMore": true,
+        "next": "/api/users?limit=10&offset=30",
+        "prev": "/api/users?limit=10&offset=10"
     }
 }
 ```
 
-**Problem:** Inconsistent with concurrent inserts/deletes (items shift).
+```sql
+-- SQL
+SELECT * FROM users ORDER BY id LIMIT 10 OFFSET 20;
+-- Problem: Slow for large offsets (DB must scan and skip rows)
+```
 
-#### Cursor-Based Pagination
+#### Cursor-Based
 
 ```javascript
-// API
-GET /users?cursor=eyJpZCI6MTAwfQ==&limit=10
+GET /api/users?cursor=eyJpZCI6MTAwfQ==&limit=10
 
 // Response
 {
@@ -73,17 +73,15 @@ GET /users?cursor=eyJpZCI6MTAwfQ==&limit=10
 ```
 
 ```sql
--- SQL (more efficient)
+-- SQL (much faster)
 SELECT * FROM users WHERE id > 100 ORDER BY id LIMIT 10;
+-- Uses index efficiently
 ```
-
-**Pros:** Consistent even with concurrent changes. Efficient with indexes.
-**Cons:** Can't jump to arbitrary pages.
 
 | Aspect | Offset-Based | Cursor-Based |
 |--------|--------------|--------------|
 | Jump to page | ✓ | ✗ |
-| Consistency | ✗ (shifts) | ✓ |
+| Consistency | ✗ (shifts on insert/delete) | ✓ |
 | Performance | Degrades with offset | Constant |
 | Use case | Admin dashboards | Infinite scroll, feeds |
 
@@ -91,58 +89,60 @@ SELECT * FROM users WHERE id > 100 ORDER BY id LIMIT 10;
 
 ### Error Handling
 
-#### Consistent Error Response Format
-
 ```javascript
-// Good error response
-{
-    "error": {
-        "code": "VALIDATION_ERROR",
-        "message": "Invalid input data",
-        "details": [
-            { "field": "email", "message": "Invalid email format" },
-            { "field": "age", "message": "Must be between 0 and 150" }
-        ]
-    }
-}
-
-// Different error levels
-{
-    "error": {
-        "code": "NOT_FOUND",
-        "message": "User with ID 123 not found"
-    }
-}
-```
-
-#### Error Handling Middleware
-
-```javascript
-// Express.js error handling
+// Consistent error response
 class AppError extends Error {
-    constructor(message, statusCode, code) {
+    constructor(message, statusCode, code, details = null) {
         super(message);
         this.statusCode = statusCode;
         this.code = code;
+        this.details = details;
     }
 }
 
-// Usage
-throw new AppError('User not found', 404, 'NOT_FOUND');
-throw new AppError('Invalid email', 400, 'VALIDATION_ERROR');
+// Error classes
+class ValidationError extends AppError {
+    constructor(details) {
+        super('Validation failed', 400, 'VALIDATION_ERROR', details);
+    }
+}
+
+class NotFoundError extends AppError {
+    constructor(resource, id) {
+        super(`${resource} with ID ${id} not found`, 404, 'NOT_FOUND');
+    }
+}
+
+class ConflictError extends AppError {
+    constructor(message) {
+        super(message, 409, 'CONFLICT');
+    }
+}
+
+class UnauthorizedError extends AppError {
+    constructor(message = 'Authentication required') {
+        super(message, 401, 'UNAUTHORIZED');
+    }
+}
+
+class ForbiddenError extends AppError {
+    constructor(message = 'Insufficient permissions') {
+        super(message, 403, 'FORBIDDEN');
+    }
+}
 
 // Global error handler
 app.use((err, req, res, next) => {
     const status = err.statusCode || 500;
-    const code = err.code || 'INTERNAL_ERROR';
-    
-    res.status(status).json({
+    const response = {
         error: {
-            code,
-            message: err.message,
+            code: err.code || 'INTERNAL_ERROR',
+            message: err.message || 'An unexpected error occurred',
+            ...(err.details && { details: err.details }),
             ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
         }
-    });
+    };
+    res.status(status).json(response);
 });
 ```
 
@@ -150,165 +150,109 @@ app.use((err, req, res, next) => {
 
 ### Rate Limiting
 
-Prevent abuse by limiting requests per client.
-
 ```javascript
 const rateLimit = require('express-rate-limit');
+const RedisStore = require('rate-limit-redis');
+const Redis = require('ioredis');
 
-// Basic rate limiting
+const redisClient = new Redis();
+
+// Basic rate limiter
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,  // 15 minutes
     max: 100,                    // 100 requests per window
-    message: { error: { code: 'RATE_LIMITED', message: 'Too many requests' } },
-    standardHeaders: true,       // Return rate limit info in headers
+    standardHeaders: true,
     legacyHeaders: false,
+    message: {
+        error: {
+            code: 'RATE_LIMITED',
+            message: 'Too many requests, please try again later'
+        }
+    }
 });
 
-app.use('/api/', limiter);
+// Redis-backed (for distributed systems)
+const redisLimiter = rateLimit({
+    store: new RedisStore({
+        sendCommand: (...args) => redisClient.call(...args),
+    }),
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+});
 
 // Different limits for different endpoints
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 5,  // Stricter for auth endpoints
+    max: 5,  // Stricter for auth
+    skipSuccessfulRequests: true
 });
 
+app.use('/api/', limiter);
 app.use('/api/auth/login', authLimiter);
 ```
-
-#### Rate Limiting Headers
-
-```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1640995200
-```
-
-#### Rate Limiting Strategies
-
-| Strategy | Description | Use Case |
-|----------|-------------|----------|
-| **Fixed Window** | Count requests per fixed time window | Simple, general use |
-| **Sliding Window** | Rolling window of last N seconds | Smoother limiting |
-| **Token Bucket** | Tokens refilled at fixed rate | Allow bursts |
-| **Leaky Bucket** | Requests processed at fixed rate | Smooth output |
 
 ---
 
 ### Request Validation
 
 ```javascript
-// Using Joi (Node.js)
 const Joi = require('joi');
 
 const userSchema = Joi.object({
     name: Joi.string().min(2).max(50).required(),
     email: Joi.string().email().required(),
-    age: Joi.number().integer().min(0).max(150),
+    age: Joi.number().integer().min(0).max(150).optional(),
+    role: Joi.string().valid('user', 'admin').default('user')
 });
 
-app.post('/users', (req, res) => {
-    const { error, value } = userSchema.validate(req.body);
-    if (error) {
-        return res.status(400).json({
-            error: {
-                code: 'VALIDATION_ERROR',
-                message: error.details[0].message
-            }
-        });
-    }
-    // Process valid data
-});
-```
-
----
-
-### API Response Format
-
-#### Consistent Envelope
-
-```javascript
-// Success
-{
-    "data": { "id": 1, "name": "Alice" },
-    "meta": { "requestId": "abc-123" }
+function validate(schema) {
+    return (req, res, next) => {
+        const { error, value } = schema.validate(req.body, { abortEarly: false });
+        if (error) {
+            const details = error.details.map(d => ({
+                field: d.path.join('.'),
+                message: d.message
+            }));
+            throw new ValidationError(details);
+        }
+        req.body = value;
+        next();
+    };
 }
 
-// List with pagination
-{
-    "data": [...],
-    "pagination": {
-        "total": 100,
-        "page": 1,
-        "perPage": 10,
-        "totalPages": 10
-    }
-}
-
-// Error
-{
-    "error": {
-        "code": "NOT_FOUND",
-        "message": "Resource not found"
-    }
-}
+app.post('/api/users', validate(userSchema), createUser);
 ```
 
 ---
 
 ### Filtering, Sorting, Searching
 
-```
-GET /users?status=active&role=admin        # Filter
-GET /users?sort=name:asc,createdAt:desc    # Sort
-GET /users?search=john                     # Search
-GET /users?fields=id,name,email            # Field selection
-```
-
 ```javascript
+GET /api/users?status=active&role=admin           // Filter
+GET /api/users?sort=name:asc,createdAt:desc       // Sort
+GET /api/users?search=john                         // Search
+GET /api/users?fields=id,name,email                // Field selection
+GET /api/users?include=posts,profile               // Related resources
+
 // Implementation
-app.get('/users', async (req, res) => {
-    let query = 'SELECT * FROM users WHERE 1=1';
-    const params = [];
+function buildQuery(params) {
+    let query = {};
     
     // Filtering
-    if (req.query.status) {
-        query += ' AND status = ?';
-        params.push(req.query.status);
-    }
+    if (params.status) query.status = params.status;
+    if (params.role) query.role = params.role;
     
-    // Sorting
-    if (req.query.sort) {
-        const [field, order] = req.query.sort.split(':');
-        query += ` ORDER BY ${field} ${order === 'desc' ? 'DESC' : 'ASC'}`;
-    }
+    return query;
+}
+
+function buildSort(sortParam) {
+    if (!sortParam) return { createdAt: -1 };
     
-    // Pagination
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = parseInt(req.query.offset) || 0;
-    query += ' LIMIT ? OFFSET ?';
-    params.push(limit, offset);
-    
-    const users = await db.query(query, params);
-    res.json({ data: users });
-});
-```
-
----
-
-### HATEOAS (Hyperlinks)
-
-```javascript
-// Response with hyperlinks
-{
-    "data": {
-        "id": 123,
-        "name": "Alice",
-        "links": {
-            "self": "/users/123",
-            "posts": "/users/123/posts",
-            "followers": "/users/123/followers"
-        }
-    }
+    return sortParam.split(',').reduce((acc, field) => {
+        const [key, order] = field.split(':');
+        acc[key] = order === 'desc' ? -1 : 1;
+        return acc;
+    }, {});
 }
 ```
 
@@ -318,19 +262,15 @@ app.get('/users', async (req, res) => {
 
 **Q: How do you version your APIs?**
 
-A: "URL path versioning is most common (/v1/users). It's explicit and easy to route. Alternatives: query parameter (?version=1), header (Accept: application/vnd.api.v1+json). I'd use URL versioning for public APIs and header versioning for internal APIs."
+A: "URL path versioning (/v1/users) is most common—explicit and easy to route. Include deprecation headers (Sunset, Deprecation) when retiring old versions. Maintain old versions for 6-12 months."
 
 **Q: What's the difference between offset and cursor pagination?**
 
-A: "Offset: skip N records—simple but inconsistent with concurrent changes and slow for large offsets. Cursor: use a unique identifier to fetch next page—consistent and efficient. Use offset for admin dashboards (need page numbers), cursor for infinite scroll and feeds."
+A: "Offset: skip N records, simple but inconsistent with concurrent changes and slow for large offsets. Cursor: use unique identifier, consistent and efficient. Use offset for admin dashboards, cursor for infinite scroll."
 
-**Q: How do you handle errors in APIs?**
+**Q: How do you handle API errors consistently?**
 
-A: "Consistent error format with code, message, and details. Use appropriate HTTP status codes (400 for validation, 401 for auth, 404 for not found, 500 for server error). Include request ID for debugging. Never expose internal errors or stack traces in production."
-
-**Q: How do you implement rate limiting?**
-
-A: "Track requests per client (by IP or API key) in a time window. Use Redis for distributed rate limiting. Return 429 Too Many Requests with Retry-After header. Strategies: fixed window, sliding window, token bucket. Apply different limits for different endpoints (stricter for auth)."
+A: "Standard error format: { error: { code, message, details } }. Use appropriate HTTP status codes. Create custom error classes (ValidationError, NotFoundError). Global error handler middleware. Never expose stack traces in production."
 
 ---
 

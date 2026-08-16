@@ -1,162 +1,57 @@
-# 05 — Message Queues
+# 05 — Message Queues & Event-Driven Architecture
 
-## Kafka, RabbitMQ — Async Processing
-
----
-
-### Why Message Queues?
-
-Without queues: Services call each other directly (synchronous, tightly coupled).
-With queues: Services communicate through messages (asynchronous, decoupled).
-
-```
-Without Queue (Synchronous):
-Order Service → Payment Service → Inventory Service → Email Service
-[User waits for ALL operations to complete]
-
-With Queue (Asynchronous):
-Order Service → Queue → Payment Service
-                     → Inventory Service
-                     → Email Service
-[User gets immediate response, processing happens in background]
-```
-
----
-
-### Benefits of Message Queues
-
-| Benefit | Description |
-|---------|-------------|
-| **Decoupling** | Services don't need to know about each other |
-| **Scalability** | Add more consumers to handle load |
-| **Reliability** | Messages persist until processed |
-| **Async Processing** | User gets immediate response |
-| **Load Leveling** | Buffer spikes in traffic |
-| **Retry** | Failed messages can be retried |
+## Kafka, RabbitMQ, Pub/Sub — 25+ Interview Questions
 
 ---
 
 ### RabbitMQ
 
-A traditional message broker implementing AMQP protocol.
-
-```
-Producer → Exchange → Queue → Consumer
-
-Exchange types:
-├── Direct: Route by exact routing key
-├── Fanout: Broadcast to all queues
-├── Topic: Route by pattern (user.*)
-└── Headers: Route by message headers
-```
-
-#### RabbitMQ Example (Node.js)
-
 ```javascript
 const amqplib = require('amqplib');
 
 // Producer
-async function publishMessage(queue, message) {
+async function publishMessage(exchange, routingKey, message) {
     const connection = await amqplib.connect('amqp://localhost');
     const channel = await connection.createChannel();
-    
-    await channel.assertQueue(queue, { durable: true });
-    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
-        persistent: true
-    });
-    
-    console.log('Message sent:', message);
+    await channel.assertExchange(exchange, 'topic', { durable: true });
+    channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), { persistent: true });
+    await channel.close();
+    await connection.close();
 }
 
 // Consumer
-async function consumeMessages(queue, handler) {
+async function consumeMessages(exchange, pattern, handler) {
     const connection = await amqplib.connect('amqp://localhost');
     const channel = await connection.createChannel();
-    
-    await channel.assertQueue(queue, { durable: true });
-    channel.prefetch(1);  // Process one message at a time
-    
+    await channel.assertExchange(exchange, 'topic', { durable: true });
+    const { queue } = await channel.assertQueue('', { exclusive: true });
+    await channel.bindQueue(queue, exchange, pattern);
+    channel.prefetch(1);
     channel.consume(queue, async (msg) => {
-        const content = JSON.parse(msg.content.toString());
         try {
-            await handler(content);
-            channel.ack(msg);  // Acknowledge success
+            await handler(JSON.parse(msg.content.toString()));
+            channel.ack(msg);
         } catch (err) {
-            channel.nack(msg);  // Negative acknowledge - retry
+            channel.nack(msg, false, true);
         }
     });
 }
-
-// Usage
-// Order Service
-await publishMessage('order.created', { orderId: 123, userId: 456 });
-
-// Payment Service
-consumeMessages('order.created', async (order) => {
-    await processPayment(order);
-    await publishMessage('payment.completed', { orderId: order.orderId });
-});
-
-// Email Service
-consumeMessages('payment.completed', async (data) => {
-    await sendConfirmationEmail(data.orderId);
-});
 ```
 
 ---
 
-### Apache Kafka
-
-A distributed event streaming platform. Different from traditional message queues.
-
-```
-Producer → Topic (Partitioned) → Consumer Group
-
-Topic: user-events
-├── Partition 0: [msg1, msg4, msg7]
-├── Partition 1: [msg2, msg5, msg8]
-└── Partition 2: [msg3, msg6, msg9]
-
-Consumer Group A:
-├── Consumer 1 → Partition 0
-├── Consumer 2 → Partition 1
-└── Consumer 3 → Partition 2
-```
-
-#### Kafka vs RabbitMQ
-
-| Aspect | Kafka | RabbitMQ |
-|--------|-------|----------|
-| **Model** | Log (append-only) | Queue (delete after consume) |
-| **Replay** | ✓ (read old messages) | ✗ |
-| **Ordering** | Per partition | Per queue |
-| **Throughput** | Very high (millions/sec) | Moderate |
-| **Latency** | Higher | Lower |
-| **Use case** | Event streaming, logs | Task queues, RPC |
-
-#### Kafka Example (Node.js)
+### Kafka
 
 ```javascript
 const { Kafka } = require('kafkajs');
 
-const kafka = new Kafka({
-    clientId: 'my-app',
-    brokers: ['localhost:9092']
-});
+const kafka = new Kafka({ clientId: 'my-app', brokers: ['localhost:9092'] });
 
 // Producer
 async function produce(topic, messages) {
     const producer = kafka.producer();
     await producer.connect();
-    
-    await producer.send({
-        topic,
-        messages: messages.map(msg => ({
-            key: msg.key,
-            value: JSON.stringify(msg.value)
-        }))
-    });
-    
+    await producer.send({ topic, messages: messages.map(m => ({ key: m.key, value: JSON.stringify(m.value) })) });
     await producer.disconnect();
 }
 
@@ -165,161 +60,299 @@ async function consume(topic, groupId, handler) {
     const consumer = kafka.consumer({ groupId });
     await consumer.connect();
     await consumer.subscribe({ topic, fromBeginning: false });
-    
-    await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-            const value = JSON.parse(message.value.toString());
-            await handler(value, { topic, partition, offset: message.offset });
-        }
-    });
+    await consumer.run({ eachMessage: async ({ message }) => await handler(JSON.parse(message.value.toString())) });
 }
-
-// Usage
-// Producer
-await produce('user-events', [
-    { key: 'user-123', value: { type: 'signup', userId: 123 } },
-    { key: 'user-456', value: { type: 'signup', userId: 456 } }
-]);
-
-// Consumer
-consume('user-events', 'email-service', async (event) => {
-    if (event.type === 'signup') {
-        await sendWelcomeEmail(event.userId);
-    }
-});
 ```
 
 ---
 
-### Pub/Sub Pattern
-
-Publisher sends messages to a topic; all subscribers receive them.
-
-```
-Publisher → Topic → Subscriber 1
-                 → Subscriber 2
-                 → Subscriber 3
-```
-
-#### Redis Pub/Sub
+### Dead Letter Queue
 
 ```javascript
-const redis = require('redis');
-
-// Publisher
-const publisher = redis.createClient();
-await publisher.publish('notifications', JSON.stringify({
-    type: 'new_order',
-    orderId: 123
-}));
-
-// Subscriber
-const subscriber = redis.createClient();
-await subscriber.subscribe('notifications', (message) => {
-    const data = JSON.parse(message);
-    console.log('Received:', data);
-});
-```
-
----
-
-### Message Patterns
-
-#### 1. Point-to-Point (Queue)
-One message processed by one consumer.
-
-```
-Producer → Queue → Consumer (only one gets it)
-```
-
-#### 2. Pub/Sub (Topic)
-One message received by all subscribers.
-
-```
-Publisher → Topic → Subscriber 1
-                 → Subscriber 2
-                 → Subscriber 3
-```
-
-#### 3. Request/Reply
-Producer expects a response.
-
-```
-Service A → Queue → Service B
-Service A ← Reply Queue ← Service B
-```
-
----
-
-### Dead Letter Queue (DLQ)
-
-Messages that fail processing go to DLQ for inspection.
-
-```javascript
-// RabbitMQ DLQ setup
 await channel.assertQueue('orders', {
     durable: true,
     arguments: {
         'x-dead-letter-exchange': 'dlx',
         'x-dead-letter-routing-key': 'orders.failed',
-        'x-message-ttl': 60000  // Max time in queue
+        'x-message-ttl': 60000
     }
-});
-
-// Process DLQ messages
-consumeMessages('orders.failed', async (failedMessage) => {
-    console.log('Failed message:', failedMessage);
-    // Alert, log, or manually retry
 });
 ```
 
 ---
 
-### At-Least-Once vs Exactly-Once Delivery
+### Interview Questions (25+)
 
-| Guarantee | Description | Trade-off |
-|-----------|-------------|-----------|
-| **At-most-once** | Message may be lost | Fast, no retries |
-| **At-least-once** | Message delivered, maybe duplicates | Safe, need idempotency |
-| **Exactly-once** | Message delivered exactly once | Complex, expensive |
+**Q1: When would you use a message queue?**
+A: "Async processing, service decoupling, load leveling. Examples: sending emails, processing uploads, distributing work. Don't use when you need immediate response."
 
-**Most systems use at-least-once + idempotency.**
+**Q2: Kafka vs RabbitMQ?**
+A: "Kafka: high-throughput event streaming, replay capability, log storage. RabbitMQ: task queues, lower latency, traditional messaging. Kafka processes millions/sec; RabbitMQ is simpler."
+
+**Q3: What is a Dead Letter Queue?**
+A: "Queue for messages that fail processing. After max retries, message moves to DLQ. Monitor DLQ for patterns. Alert on growth. Manually process or requeue."
+
+**Q4: What is idempotency in message processing?**
+A: "Same message processed multiple times = same result. Important for at-least-once delivery. Implement with unique message IDs, database deduplication."
+
+**Q5: What's the difference between pub/sub and point-to-point?**
+A: "Pub/sub: one message, multiple subscribers (event notification). Point-to-point: one message, one consumer (task distribution). Use pub/sub for broadcasting; point-to-point for work distribution."
+
+**Q6: What is message ordering?**
+A: "Kafka: ordered within partition. RabbitMQ: ordered within queue. Use partition key for ordering in Kafka. Handle out-of-order messages in consumer."
+
+**Q7: How do you handle message failures?**
+A: "Retry with exponential backoff. Dead letter queue after max retries. Circuit breaker for downstream services. Idempotent processing for safe retries."
+
+**Q8: What is at-least-once vs exactly-once delivery?**
+A: "At-least-once: message delivered, maybe duplicates. Exactly-once: message delivered once (complex). Most systems use at-least-once + idempotency."
+
+**Q9: What is message serialization?**
+A: "Convert message to bytes for transmission. JSON (human-readable), Avro (schema evolution), Protocol Buffers (efficient). Choose based on compatibility and performance needs."
+
+**Q10: How do you monitor message queues?**
+A: "Track queue depth, consumer lag, processing time. Monitor dead letter queue growth. Tools: RabbitMQ Management, Kafka Manager, Prometheus."
+
+**Q11: What is consumer group in Kafka?**
+A: "Group of consumers that share the work. Each partition assigned to one consumer in group. Adding consumers beyond partitions is wasteful. Enables parallel processing."
+
+**Q12: What is message backpressure?**
+A: "When consumers can't keep up with producers. Solutions: scale consumers, increase partition count, implement rate limiting, buffer messages."
+
+**Q13: What is saga pattern?**
+A: "Distributed transaction across services using compensating actions. Orchestration: central coordinator. Choreography: events between services. Handle failures with rollback."
+
+**Q14: How do you test message queue consumers?**
+A: "Unit test message handler logic. Integration test with real queue. Contract test message format. Load test consumer throughput."
+
+**Q15: What is event sourcing?**
+A: "Store events instead of current state. Replay events to rebuild state. Audit trail built-in. Complex queries need CQRS. Used with message queues."
+
+**Q16: What is CQRS?**
+A: "Command Query Responsibility Segregation. Separate write model (commands) from read model (queries). Optimize each independently. Often combined with event sourcing."
+
+**Q17: How do you handle message schema evolution?**
+A: "Use schema registry (Confluent). Add fields, don't remove. Use default values. Version schemas. Test backward compatibility."
+
+**Q18: What is message priority?**
+A: "High priority messages processed first. RabbitMQ supports priority queues. Kafka doesn't natively (use separate topics). Implement with multiple queues."
+
+**Q19: How do you implement request-reply pattern?**
+A: "Correlation ID to match request and reply. Reply queue per request or shared with correlation. Set timeout for replies. Handle missing replies gracefully."
+
+**Q20: What is message deduplication?**
+A: "Prevent processing same message twice. Use unique message ID. Store processed IDs in database or Redis with TTL. Implement in consumer."
+
+**Q21: How do you handle large messages?**
+A: "Store payload in object storage (S3). Send reference in message. Compress messages. Split into chunks. Use appropriate message size limits."
+
+**Q22: What is transactional outbox pattern?**
+A: "Write to database and outbox table in same transaction. Poll outbox and publish to queue. Ensures consistency between database and message queue."
+
+**Q23: How do you scale message consumers?**
+A: "Horizontal scaling with consumer groups. Increase partition count (Kafka). Add more queues (RabbitMQ). Ensure idempotent processing."
+
+**Q24: What is message routing?**
+A: "Direct messages to specific queues based on rules. RabbitMQ: exchange types (direct, topic, fanout). Kafka: partition key. Implement with routing keys."
+
+**Q25: How do you handle message ordering guarantees?**
+A: "Kafka: use partition key for ordering. RabbitMQ: single consumer per queue. Handle out-of-order in consumer with sequence numbers or buffering."
+
+---
+
+### Complete Kafka Implementation
 
 ```javascript
-// Idempotent message handler
-const processedMessages = new Set();
+const { Kafka, logLevel } = require('kafkajs');
 
-async function handleMessage(message) {
-    if (processedMessages.has(message.id)) {
-        console.log('Already processed, skipping');
-        return;
+const kafka = new Kafka({
+    clientId: 'my-app',
+    brokers: ['localhost:9092'],
+    logLevel: logLevel.WARN,
+    retry: { initialRetryTime: 100, retries: 8 }
+});
+
+// Producer with batching
+class KafkaProducer {
+    constructor() {
+        this.producer = kafka.producer({
+            maxInFlightRequests: 1,
+            idempotent: true,
+            transactionalId: 'my-app-producer'
+        });
     }
     
-    await processOrder(message);
-    processedMessages.add(message.id);
+    async connect() {
+        await this.producer.connect();
+    }
+    
+    async send(topic, messages) {
+        return this.producer.send({
+            topic,
+            messages: messages.map(m => ({
+                key: m.key,
+                value: JSON.stringify(m.value),
+                headers: m.headers || {}
+            }))
+        });
+    }
+    
+    async sendBatch(topic, messages) {
+        return this.producer.sendBatch({
+            topicMessages: [{
+                topic,
+                messages: messages.map(m => ({
+                    key: m.key,
+                    value: JSON.stringify(m.value)
+                }))
+            }]
+        });
+    }
+}
+
+// Consumer with consumer groups
+class KafkaConsumer {
+    constructor(groupId) {
+        this.consumer = kafka.consumer({ groupId });
+    }
+    
+    async subscribe(topic, handler) {
+        await this.consumer.connect();
+        await this.consumer.subscribe({ topic, fromBeginning: false });
+        
+        await this.consumer.run({
+            eachBatchAutoResolve: true,
+            eachBatch: async ({ batch, resolveOffset, heartbeat }) => {
+                for (const message of batch.messages) {
+                    try {
+                        const value = JSON.parse(message.value.toString());
+                        await handler(value, {
+                            topic: batch.topic,
+                            partition: batch.partition,
+                            offset: message.offset,
+                            timestamp: message.timestamp
+                        });
+                        resolveOffset(message.offset);
+                    } catch (error) {
+                        console.error('Message processing failed:', error);
+                        // Implement dead letter queue
+                    }
+                }
+                await heartbeat();
+            }
+        });
+    }
 }
 ```
 
 ---
 
-### Interview Questions
+### Complete RabbitMQ Implementation
 
-**Q: What's the difference between a message queue and a pub/sub system?**
+```javascript
+const amqplib = require('amqplib');
 
-A: "Message queue: point-to-point, one message processed by one consumer (task distribution). Pub/sub: one message delivered to all subscribers (event notification). Use queues for work distribution; pub/sub for broadcasting events."
-
-**Q: When would you use Kafka vs RabbitMQ?**
-
-A: "Kafka: high throughput event streaming, log aggregation, replay capability, stream processing. RabbitMQ: task queues, request/reply, lower latency, simpler setup. Kafka for data pipelines; RabbitMQ for traditional message brokering."
-
-**Q: How do you handle failed messages?**
-
-A: "Retry with exponential backoff. After max retries, send to Dead Letter Queue (DLQ). Monitor DLQ for patterns. Implement idempotent handlers to safely retry. Alert on DLQ growth."
-
-**Q: What's idempotency and why is it important?**
-
-A: "An operation is idempotent if performing it multiple times has the same effect as once. Important because message queues may deliver duplicates (at-least-once delivery). Implement idempotency using unique message IDs, database constraints, or deduplication tables."
+class RabbitMQClient {
+    constructor(url) {
+        this.url = url;
+        this.connection = null;
+        this.channel = null;
+    }
+    
+    async connect() {
+        this.connection = await amqplib.connect(this.url);
+        this.channel = await this.connection.createChannel();
+        
+        this.connection.on('error', (err) => {
+            console.error('RabbitMQ connection error:', err);
+            setTimeout(() => this.connect(), 5000);
+        });
+    }
+    
+    async publish(exchange, routingKey, message, options = {}) {
+        await this.channel.assertExchange(exchange, 'topic', { durable: true });
+        this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), {
+            persistent: true,
+            contentType: 'application/json',
+            ...options
+        });
+    }
+    
+    async consume(exchange, pattern, handler) {
+        await this.channel.assertExchange(exchange, 'topic', { durable: true });
+        const { queue } = await this.channel.assertQueue('', { exclusive: true });
+        await this.channel.bindQueue(queue, exchange, pattern);
+        
+        this.channel.prefetch(1);
+        
+        await this.channel.consume(queue, async (msg) => {
+            try {
+                const content = JSON.parse(msg.content.toString());
+                await handler(content, msg.properties);
+                this.channel.ack(msg);
+            } catch (error) {
+                console.error('Message processing failed:', error);
+                this.channel.nack(msg, false, true);
+            }
+        });
+    }
+    
+    async close() {
+        if (this.channel) await this.channel.close();
+        if (this.connection) await this.connection.close();
+    }
+}
+```
 
 ---
 
-*Next: [06 — Databases Deep Dive](06-Databases.md)*
+### Additional Interview Questions (15+)
+
+**Q26: How do you implement exactly-once delivery?**
+A: "Idempotent consumers + transactional outbox. Kafka: idempotent producer + consumer offset management. RabbitMQ: publisher confirms + manual ack. Most systems use at-least-once + idempotency."
+
+**Q27: What is Kafka consumer lag?**
+A: "Difference between latest message produced and last message consumed. Monitor with Kafka tools. High lag indicates consumer can't keep up. Solutions: scale consumers, optimize processing."
+
+**Q28: How do you handle message ordering in distributed systems?**
+A: "Kafka: partition key for ordering within partition. RabbitMQ: single consumer per queue. For global ordering: use single partition (limits throughput). Handle out-of-order with sequence numbers."
+
+**Q29: What is transactional outbox pattern?**
+A: "Write to database and outbox table in same transaction. Poll outbox and publish to queue. Ensures consistency. Use CDC (Change Data Capture) for efficiency."
+
+**Q30: How do you implement message retry with backoff?**
+A: "Exponential backoff: 1s, 2s, 4s, 8s. Add jitter to prevent thundering herd. Use delayed message exchange (RabbitMQ) or retry topic (Kafka). Max retry count before DLQ."
+
+**Q31: What is Kafka Streams?**
+A: "Client library for stream processing. Process data in real-time. Stateful operations (windowing, joins). Exactly-once semantics. Use for real-time analytics."
+
+**Q32: How do you handle message schema evolution?**
+A: "Schema registry (Confluent). Backward/forward compatibility. Add fields with defaults. Remove fields carefully. Version schemas."
+
+**Q33: What is fan-out pattern?**
+A: "One message to multiple queues/topics. Each consumer processes independently. Use for notifications, event broadcasting. RabbitMQ: fanout exchange. Kafka: multiple consumer groups."
+
+**Q34: How do you implement request-reply pattern?**
+A: "Correlation ID in message. Reply queue (per request or shared). Set timeout. Handle missing replies. Use temporary queues for replies."
+
+**Q35: What is priority queue in RabbitMQ?**
+A: "Messages with higher priority processed first. Set x-max-priority in queue declaration. Priority 0-255. Use for urgent messages."
+
+**Q36: How do you handle message compression?**
+A: "Kafka: built-in compression (gzip, snappy, lz4, zstd). RabbitMQ: application-level compression. Choose based on CPU vs bandwidth trade-off."
+
+**Q37: What is Kafka exactly-once semantics?**
+A: "Idempotent producer + transactional API. Consumer read_committed isolation. End-to-end exactly-once. Complex but possible."
+
+**Q38: How do you monitor message queues?**
+A: "Queue depth, consumer lag, processing time, error rate. Tools: Kafka Manager, RabbitMQ Management, Prometheus, Grafana. Alert on anomalies."
+
+**Q39: What is message partitioning?**
+A: "Split messages across partitions for parallel processing. Kafka: partition key determines partition. Enable horizontal scaling. Handle ordering within partition."
+
+**Q40: How do you handle poison messages?**
+A: "Messages that always fail processing. After max retries, move to DLQ. Alert on DLQ growth. Manual inspection and requeue. Don't retry indefinitely."
+
+---
+
+*Next: [06 — Database Mastery](06-Databases.md)*

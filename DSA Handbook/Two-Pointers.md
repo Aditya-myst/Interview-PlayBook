@@ -1,4 +1,4 @@
-# 02 — Two Pointers
+# 02 — Two Pointers  
 
 ## The Pattern That Eliminates Nested Loops
 

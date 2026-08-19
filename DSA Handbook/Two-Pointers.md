@@ -4,7 +4,7 @@
 
 ---
 
-### What It Is
+### What It Is  
 
 Two Pointers is a technique where you use two indices (pointers) to traverse a data structure—usually an array or linked list—in a coordinated way.
 

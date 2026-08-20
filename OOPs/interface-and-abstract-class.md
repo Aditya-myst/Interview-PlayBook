@@ -405,4 +405,4 @@ A: "In Java, interfaces can only have public static final constants, not instanc
 
 ---
 
-*Next: [08 — SOLID Principles](08-SOLID-Principles.md)*
+*Next: [08 — SOLID Principles](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/SOLID-principle.md)*

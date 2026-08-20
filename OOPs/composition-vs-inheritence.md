@@ -449,4 +449,4 @@ A: "I ask: 'Is this a true is-a relationship?' If Cat IS-A Animal, inheritance m
 
 ---
 
-*Next: [07 — Interfaces & Abstract Classes](07-Interfaces-and-Abstract-Classes.md)*
+*Next: [07 — Interfaces & Abstract Classes](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/interface-and-abstract-class.md)*

@@ -310,4 +310,4 @@ A: "Overloading is compile-time polymorphism—same method name, different param
 
 ---
 
-*Next: [02 — Encapsulation Deep Dive](02-Encapsulation.md)*
+*Next: [02 — Encapsulation Deep Dive](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/encapsulation.md)*

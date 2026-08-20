@@ -413,4 +413,4 @@ A: "Overloading is multiple methods with the same name but different parameters 
 
 ---
 
-*Next: [05 — Polymorphism Deep Dive](05-Polymorphism.md)*
+*Next: [05 — Polymorphism Deep Dive](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/polymorphism.md)*

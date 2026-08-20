@@ -453,4 +453,4 @@ public class Game {
 
 ---
 
-*Next: [11 — Interview Questions & Answers](11-Interview-QA.md)*
+*Next: [11 — Interview Questions & Answers](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/interview-question-and-answer.md)*

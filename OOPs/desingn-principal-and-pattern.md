@@ -369,4 +369,4 @@ A: "When you need to notify multiple objects when state changes—like UI compon
 
 ---
 
-*Next: [10 — OOP System Design](10-OOP-System-Design.md)*
+*Next: [10 — OOP System Design](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/oops-system-design.md)*

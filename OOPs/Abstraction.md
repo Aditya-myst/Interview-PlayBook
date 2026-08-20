@@ -319,5 +319,5 @@ A: "In a payment system, I'd define a `PaymentProcessor` interface with a `proce
 
 ---
 
-*Next: [04 — Inheritance Deep Dive](04-Inheritance.md)*
+*Next: [04 — Inheritance Deep Dive](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/inheritence.md)*
 

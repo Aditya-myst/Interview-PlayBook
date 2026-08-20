@@ -356,4 +356,4 @@ A: "The diamond problem occurs with multiple inheritance when two parent classes
 
 ---
 
-*Next: [06 — Composition vs Inheritance](06-Composition-vs-Inheritance.md)*
+*Next: [06 — Composition vs Inheritance](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/composition-vs-inheritence.md)*

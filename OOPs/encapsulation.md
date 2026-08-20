@@ -298,4 +298,4 @@ A: "No. Only expose what clients actually need. If a field is purely internal, d
 
 ---
 
-*Next: [03 — Abstraction Deep Dive](03-Abstraction.md)*
+*Next: [03 — Abstraction Deep Dive](https://github.com/Aditya-myst/Interview-PlayBook/edit/main/OOPs/Abstraction.md)*

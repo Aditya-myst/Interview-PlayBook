@@ -366,4 +366,4 @@ A: "In small, simple scripts or prototypes where maintainability isn't a concern
 
 ---
 
-*Next: [09 — Design Principles & Patterns](09-Design-Principles-and-Patterns.md)*
+*Next: [09 — Design Principles & Patterns](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/OOPs/desingn-principal-and-pattern.md)*

@@ -203,4 +203,4 @@ A: "When you need SSR/SSG for SEO, file-based routing, API routes, or image opti
 
 ---
 
-*Next: [12 — Frontend Interview Q&A](12-Interview-QA.md)*
+*Next: [12 — Frontend Interview Q&A](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FRONTEND/Interview_qa.md)*

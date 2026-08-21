@@ -257,4 +257,4 @@ A: "Relative: positioned relative to its normal position, doesn't remove from fl
 
 ---
 
-*Next: [03 — Flexbox & Grid](03-Flexbox-Grid.md)*
+*Next: [03 — Flexbox & Grid](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FRONTEND/flexbox-grid.md)*

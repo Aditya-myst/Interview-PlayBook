@@ -475,4 +475,4 @@ A: "/health endpoint. Check database, Redis, external services. Return status co
 
 ---
 
-*Next: [03 — Authentication & Authorization](03-Auth.md)*
+*Next: [03 — Authentication & Authorization](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/BACKEND/Auth.md)*

@@ -779,4 +779,4 @@ A: "Single entry point. Centralized auth. Rate limiting. Load balancing. Logging
 
 ---
 
-*Next: [02 — API Design Best Practices](02-API-Design.md)*
+*Next: [02 — API Design Best Practices](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/BACKEND/API_DESIGN.md)*

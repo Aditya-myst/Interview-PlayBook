@@ -367,4 +367,4 @@ A: "INFO command for metrics. Prometheus exporter. Grafana dashboards. Alert on 
 
 ---
 
-*Next: [05 — Message Queues & Event-Driven](05-Message-Queues.md)*
+*Next: [05 — Message Queues & Event-Driven](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/BACKEND/Messages_queue.md)*

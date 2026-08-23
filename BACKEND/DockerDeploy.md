@@ -343,4 +343,4 @@ A: "Automatically scale pods based on metrics (CPU, memory). Kubernetes feature.
 
 ---
 
-*Next: [15 — Design Patterns](15-Design-Patterns.md)*
+*Next: [15 — Design Patterns](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/BACKEND/Design-Pattern.md)*

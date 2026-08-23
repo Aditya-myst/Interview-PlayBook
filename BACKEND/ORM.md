@@ -664,4 +664,4 @@ A: "ORM for most application code—type safety, rapid development, maintainabil
 
 ---
 
-*Next: [08 — Backend Interview Q&A](08-Interview-QA.md)*
+*Next: [08 — Backend Interview Q&A](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/BACKEND/Interview-qa.md)*

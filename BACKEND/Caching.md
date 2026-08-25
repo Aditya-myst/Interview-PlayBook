@@ -1,4 +1,4 @@
-# 04 — Caching Strategies
+# 04  Caching Strategies
 
 ## Redis, Cache Patterns, Invalidation — 30+ Interview Questions
 

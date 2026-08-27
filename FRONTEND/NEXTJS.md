@@ -4,7 +4,7 @@
 
 ---
 
-### What is Next.js?
+### What is Next.js? 
 
 A React framework with server-side rendering, static generation, file-based routing, and API routes built in.
 

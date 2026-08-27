@@ -1,4 +1,4 @@
-# 07 — ORMs & Data Access
+# 07 — ORMs & Data Access 
 
 ## Prisma, SQLAlchemy, Hibernate, Entity Framework
 

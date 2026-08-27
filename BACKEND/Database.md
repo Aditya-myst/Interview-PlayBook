@@ -320,4 +320,4 @@ A: "Full backup daily. Incremental backup hourly. Point-in-time recovery. Test r
 
 ---
 
-*Next: [07 — ORMs & Data Access](07-ORMs.md)*
+*Next: [07 — ORMs & Data Access](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/BACKEND/ORM.md)*

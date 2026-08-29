@@ -38,14 +38,14 @@ They'll ask:
 
 | # | Chapter | Why It Matters |
 |---|---------|----------------|
-| 1 | [Client-Server Architecture](01-Client-Server.md) | Foundation—understand the full picture |
-| 2 | [API Integration](02-API-Integration.md) | Connecting frontend to backend |
-| 3 | [Authentication Flow](03-Auth-Flow.md) | End-to-end auth implementation |
-| 4 | [Environment Variables](04-Environment-Variables.md) | Security and configuration |
-| 5 | [Docker Basics](05-Docker.md) | Containerization fundamentals |
-| 6 | [Deployment](06-Deployment.md) | Getting code to production |
-| 7 | [CI/CD](07-CICD.md) | Automated testing and deployment |
-| 8 | [Monitoring & Observability](08-Monitoring.md) | Keeping production healthy |
+| 1 | [Client-Server Architecture](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/client_server.md) | Foundation—understand the full picture |
+| 2 | [API Integration](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/api_integration.md) | Connecting frontend to backend |
+| 3 | [Authentication Flow](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/Auth-flow.md) | End-to-end auth implementation |
+| 4 | [Environment Variables]() | Security and configuration |
+| 5 | [Docker Basics](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/docker.md) | Containerization fundamentals |
+| 6 | [Deployment](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/deployement.md) | Getting code to production |
+| 7 | [CI/CD](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/ci_cd.md) | Automated testing and deployment |
+| 8 | [Monitoring & Observability](https://github.com/Aditya-myst/Interview-PlayBook/blob/main/FULL_STACK/monitoring.md) | Keeping production healthy |
 
 ---
 

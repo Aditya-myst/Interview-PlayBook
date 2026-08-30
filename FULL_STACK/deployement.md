@@ -210,4 +210,74 @@ A: "Process manager for Node.js. Keeps app running (auto-restart on crash), clus
 
 ---
 
+### Additional Interview Questions (25+)
+
+**Q4: What is blue-green deployment?**
+A: "Two identical environments. Switch traffic from blue to green. Instant rollback. Zero downtime. Use for critical applications."
+
+**Q5: What is canary deployment?**
+A: "Route small percentage to new version. Monitor for issues. Gradually increase traffic. Rollback if problems. Use for risk mitigation."
+
+**Q6: How do you handle database migrations in deployment?**
+A: "Run migrations before deployment. Rollback capability. Blue-green with migration compatibility. Zero-downtime migrations."
+
+**Q7: What is infrastructure as code?**
+A: "Define infrastructure in code. Tools: Terraform, CloudFormation, Pulumi. Version control. Reproducible environments."
+
+**Q8: How do you handle environment variables in deployment?**
+A: "CI/CD secrets for pipelines. Cloud secret managers for production. Never in code. Validate on startup."
+
+**Q9: What is load balancing?**
+A: "Distribute requests across servers. Algorithms: round robin, least connections. Health checks. Tools: Nginx, HAProxy, AWS ALB."
+
+**Q10: How do you handle SSL/HTTPS?**
+A: "Let's Encrypt for free certificates. Auto-renewal with certbot. Nginx/Apache configuration. Redirect HTTP to HTTPS."
+
+**Q11: What is container orchestration?**
+A: "Manage multiple containers. Kubernetes, Docker Swarm, ECS. Handles scaling, load balancing, health checks."
+
+**Q12: How do you handle rollback?**
+A: "Keep previous version. Switch traffic back. Database rollback if needed. CI/CD rollback commands. Blue-green makes it instant."
+
+**Q13: What is horizontal scaling?**
+A: "Add more servers. Load balancer distributes traffic. Stateless applications. Database read replicas."
+
+**Q14: How do you handle monitoring in production?**
+A: "APM tools (Datadog, New Relic). Log aggregation (ELK). Metrics (Prometheus, Grafana). Alerting on anomalies."
+
+**Q15: What is zero-downtime deployment?**
+A: "Deploy without service interruption. Blue-green, rolling updates, canary. Health checks. Load balancer."
+
+**Q16: How do you handle secrets in deployment?**
+A: "Secret managers (AWS Secrets Manager, Vault). CI/CD secrets. Environment variables. Never in code or Docker images."
+
+**Q17: What is deployment automation?**
+A: "CI/CD pipeline. Automated testing. Automated deployment. Infrastructure as code. Reduces human error."
+
+**Q18: How do you handle multiple environments?**
+A: "Separate configs for dev/staging/prod. Environment variables. Infrastructure as code. CI/CD pipelines per environment."
+
+**Q19: What is serverless deployment?**
+A: "AWS Lambda, Google Cloud Functions, Vercel. No server management. Pay per execution. Auto-scaling."
+
+**Q20: How do you handle static assets?**
+A: "CDN for delivery. S3 for storage. Cache headers. Minification. Image optimization."
+
+**Q21: What is deployment rollback strategy?**
+A: "Keep previous version. Switch traffic back. Database rollback. CI/CD rollback commands. Test rollback process."
+
+**Q22: How do you handle DNS in deployment?**
+A: "Point domain to server IP. Use DNS provider (Cloudflare, Route53). Configure subdomains. SSL certificates."
+
+**Q23: What is deployment monitoring?**
+A: "Track deployment success. Monitor error rates. Alert on failures. Rollback on issues. Deployment dashboards."
+
+**Q24: How do you handle database scaling?**
+A: "Read replicas for read scaling. Sharding for write scaling. Connection pooling. Caching."
+
+**Q25: What is deployment best practices?**
+A: "Automate everything. Test before deploy. Monitor after deploy. Have rollback plan. Document process."
+
+---
+
 *Next: [07 — CI/CD](07-CICD.md)*

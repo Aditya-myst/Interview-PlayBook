@@ -241,4 +241,86 @@ A: "Server state management library. Handles caching, background refetching, pag
 
 ---
 
+### Additional Interview Questions (25+)
+
+**Q4: How do you handle API authentication in frontend?**
+A: "Store access token in memory (not localStorage for security). Include in Authorization header. Use refresh token in httpOnly cookie. Implement token refresh logic."
+
+**Q5: What is optimistic updates?**
+A: "Update UI immediately before server confirms. If server request fails, rollback. Improves perceived performance. Use with React Query's onMutate."
+
+**Q6: How do you handle API pagination in frontend?**
+A: "Infinite scroll with intersection observer. Load more button. Cursor-based or offset-based. React Query's useInfiniteQuery for infinite scroll."
+
+**Q7: What is request cancellation?**
+A: "Cancel pending requests when component unmounts or new request starts. AbortController for fetch. CancelToken for axios. Prevents race conditions."
+
+**Q8: How do you handle API caching in frontend?**
+A: "React Query for server state caching. SWR as alternative. HTTP caching headers. localStorage for persistent cache. Stale-while-revalidate pattern."
+
+**Q9: What is the difference between server state and client state?**
+A: "Server state: data from API, can become stale, needs synchronization. Client state: UI state, form data, local preferences. Use React Query for server state, useState/useReducer for client state."
+
+**Q10: How do you handle API retries?**
+A: "Exponential backoff with jitter. Retry on 5xx errors and network failures. Maximum retry count. React Query has built-in retry logic."
+
+**Q11: What is GraphQL and how does it differ from REST?**
+A: "GraphQL: single endpoint, client specifies fields, no over/under-fetching. REST: multiple endpoints, fixed response. GraphQL for complex data needs; REST for simple CRUD."
+
+**Q12: How do you handle file uploads in React?**
+A: "FormData for multipart uploads. Progress tracking with XMLHttpRequest or axios. Validate file type and size. Show upload progress to user."
+
+**Q13: What is API mocking and when would you use it?**
+A: "Simulate API responses for testing. Tools: MSW (Mock Service Worker), json-server. Use for development without backend, testing, demos."
+
+**Q14: How do you handle real-time data in React?**
+A: "WebSocket for bidirectional. SSE for server-to-client. React Query for polling. Socket.io for WebSocket abstraction."
+
+**Q15: What is the difference between controlled and uncontrolled components?**
+A: "Controlled: React manages form state (value + onChange). Uncontrolled: DOM manages state (ref). Controlled for validation, dynamic forms. Uncontrolled for simple forms."
+
+**Q16: How do you handle form validation in React?**
+A: "Libraries: React Hook Form, Formik. Validation: Yup, Zod. Validate on submit and on blur. Show error messages. Server-side validation too."
+
+**Q17: What is React context and when would you use it?**
+A: "Share state across components without prop drilling. Use for themes, auth, language. Don't use for frequently changing state (causes re-renders)."
+
+**Q18: How do you handle side effects in React?**
+A: "useEffect for side effects. Dependency array controls when it runs. Cleanup function for subscriptions. Don't use for data fetching (use React Query)."
+
+**Q19: What is React.memo and when would you use it?**
+A: "Memoize component to prevent re-render if props unchanged. Use for expensive components. Don't use for components that always receive different props."
+
+**Q20: How do you handle global state in React?**
+A: "Context API for simple state. Redux for complex state. Zustand for lightweight. React Query for server state. Choose based on complexity."
+
+**Q21: What is code splitting and lazy loading?**
+A: "Split code into smaller bundles. Load on demand with React.lazy. Reduces initial load time. Use for routes, heavy components."
+
+**Q22: How do you handle errors in React?**
+A: "Error boundaries for rendering errors. try/catch for async. Error state for API calls. Sentry for error tracking."
+
+**Q23: What is React Suspense?**
+A: "Show fallback while loading. Use with React.lazy for code splitting. Use with React Query for data fetching. Concurrent features."
+
+**Q24: How do you test React components?**
+A: "React Testing Library for unit tests. Jest as test runner. Mock API calls. Test user interactions. Snapshot testing for UI."
+
+**Q25: What is React Server Components?**
+A: "Components that run on server. No client JavaScript. Access database directly. Use for static content. Client components for interactivity."
+
+**Q26: How do you handle routing in React?**
+A: "React Router for client-side routing. Route parameters, nested routes, protected routes. Next.js for file-based routing."
+
+**Q27: What is React hooks best practices?**
+A: "Don't call hooks conditionally. Custom hooks for reusable logic. useEffect cleanup. useMemo/useCallback for optimization."
+
+**Q28: How do you handle authentication in React?**
+A: "Auth context for user state. Protected routes. Token storage (memory or httpOnly cookie). Redirect on unauthorized."
+
+**Q29: What is React performance optimization?**
+A: "React.memo, useMemo, useCallback. Code splitting. Virtual lists for large data. Avoid unnecessary re-renders."
+
+---
+
 *Next: [03 — Authentication Flow](03-Auth-Flow.md)*

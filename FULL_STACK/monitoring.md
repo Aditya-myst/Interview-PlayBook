@@ -200,4 +200,107 @@ A: "1) Health checks (is service up?). 2) Response time (is it fast?). 3) Error 
 
 ---
 
+### Additional Interview Questions (25+)
+
+**Q4: What is distributed tracing?**
+A: "Track requests across multiple services. Propagate trace ID. Tools: Jaeger, Zipkin, AWS X-Ray. Visualize request flow. Identify bottlenecks."
+
+**Q5: How do you implement logging best practices?**
+A: "Structured logging (JSON). Log levels (error, warn, info, debug). Include context (request ID, user ID). Don't log sensitive data. Centralized logging."
+
+**Q6: What is alerting and how do you set it up?**
+A: "Notify on anomalies. Tools: PagerDuty, OpsGenie, Grafana alerts. Set thresholds. Escalation policies. On-call rotation."
+
+**Q7: How do you monitor database performance?**
+A: "Query performance. Connection pool usage. Slow query log. Tools: pg_stat_statements, Prometheus exporters."
+
+**Q8: What is APM (Application Performance Monitoring)?**
+A: "Tools to monitor application performance. Track response times, errors, database queries. Examples: New Relic, Datadog, Sentry."
+
+**Q9: How do you handle error tracking?**
+A: "Sentry for exception monitoring. Capture stack traces. Group similar errors. Alert on new errors. Track error trends."
+
+**Q10: What is SLA/SLO/SLI?**
+A: "SLI: Service Level Indicator (metric). SLO: Service Level Objective (target). SLA: Service Level Agreement (contract). Example: SLI=99.9% uptime, SLO=99.95%, SLA=99.9%."
+
+**Q11: How do you monitor frontend performance?**
+A: "Core Web Vitals (LCP, FID, CLS). Lighthouse scores. Real User Monitoring (RUM). Tools: Sentry, LogRocket, Datadog RUM."
+
+**Q12: What is log aggregation?**
+A: "Collect logs from multiple sources. Centralize in one place. Search and analyze. Tools: ELK Stack, Splunk, Loki."
+
+**Q13: How do you handle high-cardinality metrics?**
+A: "Use labels carefully. Avoid high-cardinality labels (user IDs). Aggregate before storing. Use sampling for traces."
+
+**Q14: What is observability vs monitoring?**
+A: "Monitoring: track known metrics. Observability: understand unknown issues. Monitoring tells you what; observability tells you why."
+
+**Q15: How do you implement health checks?**
+A: "/health endpoint. Check database, Redis, external services. Return status codes. Include uptime, version. Use for load balancer health checks."
+
+**Q16: What is incident management?**
+A: "Process for handling production issues. Detection, response, resolution, post-mortem. Tools: PagerDuty, OpsGenie."
+
+**Q17: How do you monitor costs?**
+A: "Track cloud spending. Set budgets. Alert on anomalies. Tools: AWS Cost Explorer, GCP Billing. Optimize resources."
+
+**Q18: What is chaos engineering?**
+A: "Intentionally introduce failures to test resilience. Tools: Chaos Monkey, Gremlin. Build confidence in system reliability."
+
+**Q19: How do you handle log rotation?**
+A: "Rotate logs to prevent disk full. Compress old logs. Set retention policy. Tools: logrotate, Docker log drivers."
+
+**Q20: What is synthetic monitoring?**
+A: "Simulate user interactions. Test critical paths regularly. Alert on failures. Tools: Pingdom, Checkly, Datadog Synthetics."
+
+**Q21: How do you monitor microservices?**
+A: "Distributed tracing. Centralized logging. Metrics per service. Health checks. Service mesh observability."
+
+**Q22: What is dashboard best practices?**
+A: "Key metrics at a glance. Drill-down capability. Historical trends. Alert status. Tools: Grafana, Datadog, Kibana."
+
+**Q23: How do you handle alert fatigue?**
+A: "Set meaningful thresholds. Reduce noise. Group related alerts. Escalation policies. Regular review and tuning."
+
+**Q24: What is observability pipeline?**
+A: "Collect, process, store, analyze telemetry data. Tools: OpenTelemetry, Fluentd, Vector. Route data to multiple backends."
+
+**Q25: How do you implement distributed tracing?**
+A: "Propagate trace ID in headers. Use Jaeger, Zipkin, or AWS X-Ray. Add spans for each service call. Visualize request flow."
+
+---
+
+### Full Stack Architecture Summary
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Full Stack Application                     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Frontend (React/Next.js)                                       │
+│  ├── Components, State Management, Routing                      │
+│  ├── API Integration (fetch/axios/React Query)                  │
+│  └── Deployed to Vercel/Netlify                                 │
+│                                                                 │
+│  Backend (Node.js/Express)                                      │
+│  ├── Routes, Controllers, Services, Models                      │
+│  ├── Authentication (JWT, OAuth)                                │
+│  ├── Middleware (auth, validation, error handling)               │
+│  └── Deployed to Railway/EC2 with Docker                        │
+│                                                                 │
+│  Database (PostgreSQL/MongoDB)                                  │
+│  ├── Schema design, Indexing, Optimization                      │
+│  └── Managed service (AWS RDS, Railway)                         │
+│                                                                 │
+│  Infrastructure                                                 │
+│  ├── Docker for containerization                                │
+│  ├── CI/CD with GitHub Actions                                  │
+│  ├── Monitoring with Prometheus/Grafana                         │
+│  └── Error tracking with Sentry                                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 *Good luck with your full stack interviews!*

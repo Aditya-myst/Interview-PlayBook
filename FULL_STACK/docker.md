@@ -215,4 +215,86 @@ A: "Tool for defining and running multi-container applications. Uses YAML to con
 
 ---
 
+### Additional Interview Questions (30+)
+
+**Q5: How do you optimize Docker images?**
+A: "Multi-stage builds. Alpine base images. Layer caching (COPY package.json first). .dockerignore file. Minimize layers. Use Docker BuildKit."
+
+**Q6: What is Docker layer caching?**
+A: "Docker caches layers. Copy package.json before code. Only rebuild when dependencies change. Reduces build time significantly."
+
+**Q7: How do you handle Docker secrets?**
+A: "Docker secrets for sensitive data. Environment variables for non-sensitive. Secret managers (Vault, AWS Secrets Manager). Never in Dockerfile."
+
+**Q8: What is Docker networking?**
+A: "Bridge: default, container-to-container. Host: share host network. None: isolated. Overlay: multi-host. Custom networks."
+
+**Q9: How do you handle database migrations in Docker?**
+A: "Run migrations in entrypoint script. Use init scripts. Separate migration service. Run before application starts."
+
+**Q10: What is container security best practices?**
+A: "Use minimal base images. Run as non-root user. Scan for vulnerabilities. Don't store secrets in images. Use read-only filesystem."
+
+**Q11: How do you implement CI/CD with Docker?**
+A: "Build image in CI. Run tests in container. Push to registry. Deploy to staging. Run E2E tests. Deploy to production."
+
+**Q12: What is Docker volume types?**
+A: "Named volumes: managed by Docker. Bind mounts: host directory. tmpfs: memory only. Use named volumes for persistence."
+
+**Q13: How do you handle logging in Docker?**
+A: "Log to stdout/stderr. Docker log drivers. Centralized logging (ELK, Fluentd). Structured logging (JSON)."
+
+**Q14: What is Docker Compose vs Kubernetes?**
+A: "Docker Compose: local development, simple orchestration. Kubernetes: production, complex orchestration, scaling, self-healing."
+
+**Q15: How do you implement zero-downtime deployment?**
+A: "Blue-green deployment. Rolling updates. Health checks. Load balancer. Database migrations compatible with both versions."
+
+**Q16: What is container registry?**
+A: "Store Docker images. Docker Hub, ECR, GCR, ACR. Public or private. Version tags. Security scanning."
+
+**Q17: How do you handle configuration in Docker?**
+A: "Environment variables. Config files mounted as volumes. Secret managers. ConfigMaps in Kubernetes."
+
+**Q18: What is Docker BuildKit?**
+A: "Improved build system. Parallel builds. Better caching. Secret mounting. Build secrets. Enable with DOCKER_BUILDKIT=1."
+
+**Q19: How do you test Docker images?**
+A: "Build in CI. Run tests in container. Security scanning (Trivy). Integration tests with docker-compose. Smoke tests."
+
+**Q20: What is horizontal pod autoscaling?**
+A: "Automatically scale pods based on metrics (CPU, memory). Kubernetes feature. Configure thresholds. Handle scaling events."
+
+**Q21: How do you handle Docker in production?**
+A: "Use orchestration (Kubernetes). Health checks. Logging. Monitoring. Resource limits. Restart policies."
+
+**Q22: What is Docker health check?**
+A: "HEALTHCHECK instruction in Dockerfile. Docker monitors container health. Orchestrator restarts unhealthy containers."
+
+**Q23: How do you handle Docker networking?**
+A: "Custom networks for service isolation. DNS for service discovery. Port mapping for external access. Network policies for security."
+
+**Q24: What is Docker swarm?**
+A: "Docker's native orchestration. Simpler than Kubernetes. Good for small deployments. Built into Docker."
+
+**Q25: How do you handle Docker storage?**
+A: "Volumes for persistent data. Bind mounts for development. tmpfs for temporary data. Don't store data in containers."
+
+**Q26: What is Docker image tagging?**
+A: "Version tags (v1.0.0). Latest tag (avoid in production). SHA tags for immutability. Semantic versioning."
+
+**Q27: How do you handle Docker dependencies?**
+A: "Multi-stage builds. Separate build and runtime dependencies. Use package managers. Minimize installed packages."
+
+**Q28: What is Docker container orchestration?**
+A: "Manage multiple containers. Kubernetes, Docker Swarm, ECS. Handles scaling, load balancing, health checks."
+
+**Q29: How do you debug Docker containers?**
+A: "docker logs for output. docker exec for shell access. docker inspect for configuration. Debug images with tools."
+
+**Q30: What is Docker security scanning?**
+A: "Scan images for vulnerabilities. Tools: Trivy, Snyk, Docker Scout. Run in CI/CD. Fix critical vulnerabilities."
+
+---
+
 *Next: [06 — Deployment](06-Deployment.md)*

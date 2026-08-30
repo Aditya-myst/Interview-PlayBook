@@ -1,4 +1,4 @@
-# 01 — Client-Server   Architecture
+# 01 — Client-Server Architecture
 
 ## Understanding the Full Picture
 
@@ -253,6 +253,100 @@ A: "Frontend: runs in browser, handles UI/UX, uses HTML/CSS/JavaScript/React. Ba
 **Q: What is middleware in Express.js?**
 
 A: "Functions that execute during the request-response cycle. They can modify request/response objects, execute code, end the cycle, or call the next middleware. Used for authentication, logging, error handling, rate limiting."
+
+---
+
+### Additional Interview Questions (30+)
+
+**Q1: What is the difference between HTTP and HTTPS?**
+A: "HTTP: unencrypted, data sent in plain text. HTTPS: encrypted with TLS/SSL, data encrypted in transit. HTTPS prevents eavesdropping, man-in-the-middle attacks. Use HTTPS for all production applications."
+
+**Q2: What are HTTP methods and when would you use each?**
+A: "GET: retrieve data (idempotent, safe). POST: create new resource (not idempotent). PUT: replace entire resource (idempotent). PATCH: partial update (not idempotent). DELETE: remove resource (idempotent)."
+
+**Q3: What is the difference between HTTP/1.1 and HTTP/2?**
+A: "HTTP/1.1: one request per connection (or pipelining). HTTP/2: multiplexing (multiple requests over single connection), header compression, server push. HTTP/2 is faster for multiple requests."
+
+**Q4: What is REST and what are its principles?**
+A: "REST: Representational State Transfer. Principles: stateless, client-server separation, cacheable, uniform interface, layered system. Resources are nouns, methods are verbs."
+
+**Q5: What is the difference between server-side rendering (SSR) and client-side rendering (CSR)?**
+A: "SSR: HTML generated on server, sent to browser. Faster initial load, better SEO. CSR: JavaScript runs in browser, renders UI. Better for dynamic apps. Next.js supports both."
+
+**Q6: What is a reverse proxy?**
+A: "Server that sits between clients and backend servers. Handles load balancing, SSL termination, caching, compression. Examples: Nginx, HAProxy, AWS ALB."
+
+**Q7: What is load balancing?**
+A: "Distribute requests across multiple servers. Algorithms: round robin, least connections, IP hash. Health checks to remove unhealthy servers. Improves availability and scalability."
+
+**Q8: What is the difference between TCP and UDP?**
+A: "TCP: reliable, ordered, connection-oriented. UDP: unreliable, unordered, connectionless. TCP for web, email. UDP for gaming, video streaming, DNS."
+
+**Q9: What is DNS and how does it work?**
+A: "Domain Name System: translates domain names to IP addresses. Process: browser cache → OS cache → recursive resolver → root server → TLD server → authoritative server."
+
+**Q10: What is a CDN and how does it help?**
+A: "Content Delivery Network: caches content at edge locations worldwide. Reduces latency, improves load times. Examples: CloudFront, Cloudflare, Akamai."
+
+**Q11: What is CORS and why is it needed?**
+A: "Cross-Origin Resource Sharing. Browsers block requests to different domains by default. CORS allows servers to specify which origins can access their resources."
+
+**Q12: What is the difference between cookies, localStorage, and sessionStorage?**
+A: "Cookies: sent with every request, 4KB limit, can be httpOnly. localStorage: persists until cleared, 5-10MB, same origin. sessionStorage: cleared on tab close, 5-10MB, same origin."
+
+**Q13: What is WebSocket and when would you use it?**
+A: "Full-duplex communication over single TCP connection. Persistent connection. Use for real-time: chat, live updates, gaming, notifications. Unlike HTTP, server can push to client."
+
+**Q14: What is Server-Sent Events (SSE)?**
+A: "Server pushes updates to client over HTTP. Unidirectional (server to client). Use for real-time notifications, live feeds. Simpler than WebSocket for one-way communication."
+
+**Q15: What is the difference between synchronous and asynchronous communication?**
+A: "Synchronous: client waits for response (HTTP, REST). Asynchronous: client continues, processes response later (message queues, WebSockets). Sync for queries, async for events."
+
+**Q16: What is API gateway?**
+A: "Single entry point for all API requests. Handles routing, authentication, rate limiting, logging, caching. Simplifies client, centralizes cross-cutting concerns."
+
+**Q17: What is microservices architecture?**
+A: "Application as suite of small services. Each service independently deployable. Communication via APIs/events. Benefits: scalability, flexibility, technology diversity."
+
+**Q18: What is the difference between monolith and microservices?**
+A: "Monolith: single codebase, single deployment. Microservices: multiple services, independent deployment. Monolith simpler initially; microservices better for large teams and scaling."
+
+**Q19: What is containerization?**
+A: "Package application with dependencies into container. Consistent across environments. Lightweight compared to VMs. Docker is the most popular container platform."
+
+**Q20: What is the difference between Docker and virtual machines?**
+A: "Docker: shares host OS kernel, lightweight, fast startup. VMs: full OS, heavier, slower startup. Docker for application isolation; VMs for OS-level isolation."
+
+**Q21: What is CI/CD?**
+A: "Continuous Integration: auto test on push. Continuous Deployment: auto deploy when tests pass. Benefits: catch bugs early, faster releases, consistent deployments."
+
+**Q22: What is infrastructure as code?**
+A: "Define infrastructure in code. Tools: Terraform, CloudFormation, Pulumi. Version control, reproducible environments, automated provisioning."
+
+**Q23: What is the difference between SQL and NoSQL databases?**
+A: "SQL: relational, fixed schema, ACID, complex queries. NoSQL: document/key-value/graph, flexible schema, horizontal scaling. SQL for structured data; NoSQL for flexible data."
+
+**Q24: What is database indexing?**
+A: "Data structure for fast lookups. Speeds up SELECT, slows down INSERT/UPDATE. Choose indexes based on query patterns. B-tree for range queries, hash for equality."
+
+**Q25: What is caching and why use it?**
+A: "Store frequently accessed data in faster storage. Reduces database load, improves response times. Redis for distributed cache, CDN for static assets."
+
+**Q26: What is the difference between authentication and authorization?**
+A: "Authentication: 'Who are you?'—verify identity. Authorization: 'What can you do?'—check permissions. Auth happens first, then authorization."
+
+**Q27: What is JWT and how does it work?**
+A: "JSON Web Token: stateless authentication. Header (algorithm), payload (claims), signature. Server creates JWT, client sends in Authorization header."
+
+**Q28: What is OAuth 2.0?**
+A: "Delegated authorization. User redirected to provider, approves, gets auth code, exchanges for access token. Used for social login."
+
+**Q29: What is the difference between session and token-based authentication?**
+A: "Session: server stores session data, client has session ID. Token: client stores token (JWT), server validates signature. Session can be invalidated; token valid until expiry."
+
+**Q30: What is rate limiting?**
+A: "Limit requests per client per time window. Prevents abuse, ensures fair usage. Implement with Redis. Return 429 when limit exceeded."
 
 ---
 

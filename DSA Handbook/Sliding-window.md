@@ -120,27 +120,27 @@ This template solves the vast majority of sliding window problems. The only thin
 2. How you update the answer
 3. Whether you're maximizing or minimizing
 
-```python
-def sliding_window(nums, k):
-    left = 0
-    window_state = {}  # or a counter, sum, set, etc.
-    answer = 0  # or float('inf') if minimizing
-    
-    for right in range(len(nums)):
-        # 1. Expand: add nums[right] to the window
-        add_to_window(nums[right], window_state)
-        
-        # 2. Shrink: while window is invalid, remove from left
-        while window_is_invalid(window_state, k):
-            remove_from_window(nums[left], window_state)
-            left += 1
-        
-        # 3. Update answer
-        # For longest:  answer = max(answer, right - left + 1)
-        # For shortest: answer = min(answer, right - left + 1)
-        answer = max(answer, right - left + 1)
-    
-    return answer
+```c++
+int slidingWindow(const vector<T>& nums, int k) {
+    int left = 0;
+    unordered_map<T, int> windowState;   // or any other state structure
+    int answer = 0;                      // use INT_MAX for minimization
+
+    for (int right = 0; right < nums.size(); ++right) {
+        // 1. Expand: add nums[right] to the window
+        addToWindow(nums[right], windowState);
+
+        // 2. Shrink while window is invalid
+        while (windowIsInvalid(windowState, k)) {
+            removeFromWindow(nums[left], windowState);
+            ++left;
+        }
+
+        // 3. Update answer (for longest; use min for shortest)
+        answer = max(answer, right - left + 1);
+    }
+    return answer;
+}
 ```
 
 **Why this works:**
@@ -163,25 +163,27 @@ def sliding_window(nums, k):
 - Invalid condition: a character appears more than once
 - Answer: maximize window length
 
-```python
-def lengthOfLongestSubstring(s):
-    left = 0
-    char_count = {}
-    answer = 0
-    
-    for right in range(len(s)):
-        # Expand
-        char_count[s[right]] = char_count.get(s[right], 0) + 1
-        
-        # Shrink while invalid (duplicate exists)
-        while char_count[s[right]] > 1:
-            char_count[s[left]] -= 1
-            left += 1
-        
-        # Update answer (longest)
-        answer = max(answer, right - left + 1)
-    
-    return answer
+```c++
+int lengthOfLongestSubstring(const string& s) {
+    int left = 0;
+    unordered_map<char, int> charCount;
+    int answer = 0;
+
+    for (int right = 0; right < s.size(); ++right) {
+        // Expand
+        charCount[s[right]]++;
+
+        // Shrink while duplicate exists
+        while (charCount[s[right]] > 1) {
+            charCount[s[left]]--;
+            ++left;
+        }
+
+        // Update answer (longest)
+        answer = max(answer, right - left + 1);
+    }
+    return answer;
+}
 ```
 
 **Step-by-step:**
@@ -228,35 +230,38 @@ Return 3. The longest substring without repeating characters is "abc".
 - Valid condition: window contains all characters of `t` (with required counts)
 - Answer: minimize window length
 
-```python
-from collections import Counter
 
-def minWindow(s, t):
-    need = Counter(t)
-    missing = len(t)  # total characters still needed
-    left = 0
-    best_start, best_len = 0, float('inf')
-    
-    for right in range(len(s)):
-        # Expand
-        if need[s[right]] > 0:
-            missing -= 1
-        need[s[right]] -= 1
-        
-        # When valid (all characters found), try to shrink
-        while missing == 0:
-            # Update answer (shortest)
-            if right - left + 1 < best_len:
-                best_len = right - left + 1
-                best_start = left
-            
-            # Shrink
-            need[s[left]] += 1
-            if need[s[left]] > 0:
-                missing += 1
-            left += 1
-    
-    return s[best_start:best_start + best_len] if best_len != float('inf') else ""
+```c++
+string minWindow(const string& s, const string& t) {
+    unordered_map<char, int> need;
+    for (char c : t) need[c]++;
+
+    int missing = t.size();
+    int left = 0;
+    int bestStart = 0, bestLen = INT_MAX;
+
+    for (int right = 0; right < s.size(); ++right) {
+        // Expand
+        if (need[s[right]] > 0) missing--;
+        need[s[right]]--;
+
+        // When valid, try to shrink
+        while (missing == 0) {
+            // Update answer (shortest)
+            int curLen = right - left + 1;
+            if (curLen < bestLen) {
+                bestLen = curLen;
+                bestStart = left;
+            }
+
+            // Shrink
+            need[s[left]]++;
+            if (need[s[left]] > 0) missing++;
+            left++;
+        }
+    }
+    return (bestLen == INT_MAX) ? "" : s.substr(bestStart, bestLen);
+}
 ```
 
 **Key difference from the previous problem:**
@@ -478,23 +483,27 @@ Sometimes the problem asks for "exactly K" but the template works best with "at 
 
 **Trick:** `exactly(K) = atMost(K) - atMost(K-1)`
 
-```python
-def exactlyK(nums, k):
-    return atMost(nums, k) - atMost(nums, k - 1)
+```c++
+int atMost(const vector<int>& nums, int k) {
+    int left = 0, count = 0;
+    unordered_map<int, int> freq;
 
-def atMost(nums, k):
-    left = 0
-    count = 0
-    freq = {}
-    for right in range(len(nums)):
-        freq[nums[right]] = freq.get(nums[right], 0) + 1
-        while len(freq) > k:
-            freq[nums[left]] -= 1
-            if freq[nums[left]] == 0:
-                del freq[nums[left]]
-            left += 1
-        count += right - left + 1
-    return count
+    for (int right = 0; right < nums.size(); ++right) {
+        freq[nums[right]]++;
+        while ((int)freq.size() > k) {
+            freq[nums[left]]--;
+            if (freq[nums[left]] == 0)
+                freq.erase(nums[left]);
+            ++left;
+        }
+        count += right - left + 1;   // number of subarrays ending at 'right'
+    }
+    return count;
+}
+
+int exactlyK(const vector<int>& nums, int k) {
+    return atMost(nums, k) - atMost(nums, k - 1);
+}
 ```
 
 #### Variation 2: Sliding Window with Two Arrays
@@ -515,12 +524,12 @@ This is a hybrid of Sliding Window + Monotonic Stack. See Chapter 05.
 
 #### Mistake 1: Off-by-One Errors
 
-```python
-# WRONG: doesn't process the last window
-for right in range(len(nums)):
-    # ... shrink logic ...
-    if right - left + 1 == k:
-        update_answer()
+```c++
+// Correct: update answer inside the loop
+for (int right = 0; right < n; ++right) {
+    // ... shrink logic ...
+    if (right - left + 1 == k) update_answer();   // OK, but not always needed
+}
 
 # The loop ends, but the window might still be valid.
 # Make sure to update the answer INSIDE the loop.
@@ -530,14 +539,16 @@ for right in range(len(nums)):
 
 ```python
 # WRONG: shrinks even when window is valid
-while left <= right:
-    remove(nums[left])
-    left += 1
+while (left <= right) {
+    remove(nums[left]);
+    ++left;
+}
 
 # RIGHT: only shrink while INVALID
-while window_is_invalid():
-    remove(nums[left])
-    left += 1
+while (windowIsInvalid()) {
+    remove(nums[left]);
+    ++left;
+}
 ```
 
 #### Mistake 3: Forgetting to Handle Empty State

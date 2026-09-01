@@ -46,7 +46,7 @@ Whether you are a student preparing for internships, a developer targeting produ
   Focuses on how real-world software is designed, developed, tested, and scaled.
 
 - 🌐 **Full Stack Coverage**  
-  Frontend, backend, databases, APIs, deployment, and infrastructure.
+  Frontend, backend, databases,   APIs, deployment, and infrastructure.
 
 - ☁️ **Modern Engineering Stack**  
   Cloud, DevOps, containers, CI/CD, and monitoring.

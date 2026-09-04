@@ -229,4 +229,4 @@ Your support helps more developers discover this resource.
 
 ## 📜 License
 
-Licensed under the MIT License.
+Licensed under the MIT License.  
